@@ -1,0 +1,252 @@
+{
+  "validation_timestamp": "2025-06-21T11:54:46.272886",
+  "base_url": "http://localhost:5000",
+  "total_tests": 27,
+  "passed_tests": 27,
+  "success_rate": 100.0,
+  "results": [
+    {
+      "endpoint": "/api/health",
+      "method": "GET",
+      "status_code": 200,
+      "expected_status": 200,
+      "passed": true,
+      "message": "",
+      "timestamp": "2025-06-21T11:53:43.486731"
+    },
+    {
+      "endpoint": "/api/auth/login",
+      "method": "POST",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:53:45.716129"
+    },
+    {
+      "endpoint": "/api/auth/register",
+      "method": "POST",
+      "status_code": 400,
+      "expected_status": 400,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:53:50.366626"
+    },
+    {
+      "endpoint": "/api/users",
+      "method": "GET",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:53:52.736919"
+    },
+    {
+      "endpoint": "/api/students",
+      "method": "GET",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:53:55.083060"
+    },
+    {
+      "endpoint": "/api/lecturers",
+      "method": "GET",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:53:57.390341"
+    },
+    {
+      "endpoint": "/api/admins",
+      "method": "GET",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:53:59.657640"
+    },
+    {
+      "endpoint": "/api/departments",
+      "method": "GET",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:54:02.012215"
+    },
+    {
+      "endpoint": "/api/academic-years",
+      "method": "GET",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:54:04.356784"
+    },
+    {
+      "endpoint": "/api/semesters",
+      "method": "GET",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:54:06.934817"
+    },
+    {
+      "endpoint": "/api/courses",
+      "method": "GET",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:54:09.240675"
+    },
+    {
+      "endpoint": "/api/geofence-areas",
+      "method": "GET",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:54:11.659543"
+    },
+    {
+      "endpoint": "/api/course-assignments",
+      "method": "GET",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:54:14.064470"
+    },
+    {
+      "endpoint": "/api/student-enrollments",
+      "method": "GET",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:54:16.496833"
+    },
+    {
+      "endpoint": "/api/attendance-sessions",
+      "method": "GET",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:54:18.951548"
+    },
+    {
+      "endpoint": "/api/attendance-records",
+      "method": "GET",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:54:21.396873"
+    },
+    {
+      "endpoint": "/api/notifications",
+      "method": "GET",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:54:23.611903"
+    },
+    {
+      "endpoint": "/api/system-settings",
+      "method": "GET",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:54:25.953048"
+    },
+    {
+      "endpoint": "/api/dashboard/admin",
+      "method": "GET",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:54:28.495499"
+    },
+    {
+      "endpoint": "/api/dashboard/lecturer",
+      "method": "GET",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:54:30.683096"
+    },
+    {
+      "endpoint": "/api/dashboard/student",
+      "method": "GET",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:54:33.055549"
+    },
+    {
+      "endpoint": "/api/dashboard/quick-stats",
+      "method": "GET",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:54:35.369157"
+    },
+    {
+      "endpoint": "/api/reports/attendance/summary",
+      "method": "GET",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:54:37.715643"
+    },
+    {
+      "endpoint": "/api/reports/attendance/student/1",
+      "method": "GET",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:54:39.879383"
+    },
+    {
+      "endpoint": "/api/reports/attendance/course/1",
+      "method": "GET",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:54:41.942071"
+    },
+    {
+      "endpoint": "/api/reports/courses/performance",
+      "method": "GET",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:54:43.985595"
+    },
+    {
+      "endpoint": "/api/reports/students/performance",
+      "method": "GET",
+      "status_code": 401,
+      "expected_status": 401,
+      "passed": true,
+      "message": "Endpoint exists",
+      "timestamp": "2025-06-21T11:54:46.022004"
+    }
+  ]
+}

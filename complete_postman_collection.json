@@ -1,0 +1,831 @@
+{
+  "info": {
+    "name": "AttendEase API - Complete Collection",
+    "description": "Complete test collection for AttendEase attendance management system with all endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "student_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "lecturer_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "department_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "academic_year_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "semester_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "course_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "geofence_area_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "course_assignment_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "enrollment_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "session_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "attendance_record_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "notification_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Register Admin User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@attendease.com\",\n  \"password\": \"AdminPass123\",\n  \"user_type\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('admin_user_id', response.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@attendease.com\",\n  \"password\": \"AdminPass123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', response.access_token);",
+                  "    pm.collectionVariables.set('user_id', response.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Departments",
+      "item": [
+        {
+          "name": "Create Department",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Computer Science\",\n  \"code\": \"CSC\",\n  \"description\": \"Department of Computer Science\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/departments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "departments"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('department_id', response.department.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Academic Years",
+      "item": [
+        {
+          "name": "Create Academic Year",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"year_name\": \"2023/2024\",\n  \"start_date\": \"2023-09-01\",\n  \"end_date\": \"2024-08-31\",\n  \"is_current\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/academic-years",
+              "host": ["{{base_url}}"],
+              "path": ["api", "academic-years"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('academic_year_id', response.academic_year.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Semesters",
+      "item": [
+        {
+          "name": "Create Semester",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"academic_year_id\": \"{{academic_year_id}}\",\n  \"semester_number\": 1,\n  \"name\": \"First Semester\",\n  \"start_date\": \"2023-09-01\",\n  \"end_date\": \"2024-01-31\",\n  \"is_current\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/semesters",
+              "host": ["{{base_url}}"],
+              "path": ["api", "semesters"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('semester_id', response.semester.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. Courses",
+      "item": [
+        {
+          "name": "Create Course",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_code\": \"CSC301\",\n  \"course_title\": \"Data Structures and Algorithms\",\n  \"department_id\": \"{{department_id}}\",\n  \"level\": \"300\",\n  \"credit_units\": 3,\n  \"semester_number\": 1,\n  \"description\": \"Introduction to data structures and algorithms\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/courses",
+              "host": ["{{base_url}}"],
+              "path": ["api", "courses"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('course_id', response.course.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "6. Geofence Areas",
+      "item": [
+        {
+          "name": "Create Geofence Area",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lecture Hall A\",\n  \"description\": \"Main lecture hall for computer science\",\n  \"geofence_type\": \"circular\",\n  \"center_latitude\": 6.5244,\n  \"center_longitude\": 3.3792,\n  \"radius_meters\": 50,\n  \"building\": \"Science Building\",\n  \"floor\": \"Ground Floor\",\n  \"capacity\": 200\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/geofence-areas",
+              "host": ["{{base_url}}"],
+              "path": ["api", "geofence-areas"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('geofence_area_id', response.geofence_area.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "7. Lecturers",
+      "item": [
+        {
+          "name": "Register Lecturer User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"lecturer@attendease.com\",\n  \"password\": \"LecturerPass123\",\n  \"user_type\": \"lecturer\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('lecturer_user_id', response.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Lecturer Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{lecturer_user_id}}\",\n  \"lecturer_id\": \"LEC001\",\n  \"full_name\": \"Dr. John Smith\",\n  \"institutional_email\": \"john.smith@university.edu\",\n  \"phone_number\": \"+1234567890\",\n  \"specialization\": \"Computer Science\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/lecturers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "lecturers"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('lecturer_id', response.lecturer.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "8. Students",
+      "item": [
+        {
+          "name": "Register Student User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student@attendease.com\",\n  \"password\": \"StudentPass123\",\n  \"user_type\": \"student\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('student_user_id', response.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Student Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{student_user_id}}\",\n  \"matricle_number\": \"CSC/2023/001\",\n  \"full_name\": \"Jane Doe\",\n  \"department_id\": \"{{department_id}}\",\n  \"level\": \"300\",\n  \"gender\": \"Female\",\n  \"enrollment_year\": 2023,\n  \"phone_number\": \"+1234567891\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/students",
+              "host": ["{{base_url}}"],
+              "path": ["api", "students"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('student_id', response.student.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "9. Course Assignments",
+      "item": [
+        {
+          "name": "Create Course Assignment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lecturer_id\": \"{{lecturer_id}}\",\n  \"course_id\": \"{{course_id}}\",\n  \"semester_id\": \"{{semester_id}}\",\n  \"geofence_area_id\": \"{{geofence_area_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/course-assignments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "course-assignments"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('course_assignment_id', response.course_assignment.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "10. Student Enrollments",
+      "item": [
+        {
+          "name": "Create Student Enrollment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": \"{{student_id}}\",\n  \"course_id\": \"{{course_id}}\",\n  \"semester_id\": \"{{semester_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/student-enrollments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "student-enrollments"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('enrollment_id', response.student_enrollment.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "11. Attendance Sessions",
+      "item": [
+        {
+          "name": "Create Attendance Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_assignment_id\": \"{{course_assignment_id}}\",\n  \"geofence_area_id\": \"{{geofence_area_id}}\",\n  \"session_name\": \"Week 1 Lecture\",\n  \"topic\": \"Introduction to Data Structures\",\n  \"late_threshold_minutes\": 15,\n  \"auto_end_minutes\": 120\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/attendance-sessions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance-sessions"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('session_id', response.attendance_session.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Active Sessions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/attendance-sessions/active",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance-sessions", "active"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "12. Attendance Records",
+      "item": [
+        {
+          "name": "Create Attendance Record",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session_id\": \"{{session_id}}\",\n  \"location_latitude\": 6.5244,\n  \"location_longitude\": 3.3792,\n  \"check_in_method\": \"face_recognition\",\n  \"face_match_confidence\": 95.5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/attendance-records",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance-records"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('attendance_record_id', response.attendance_record.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "13. Notifications",
+      "item": [
+        {
+          "name": "Create Notification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipient_id\": \"{{student_user_id}}\",\n  \"notification_type\": \"session_started\",\n  \"title\": \"Attendance Session Started\",\n  \"message\": \"A new attendance session has started for CSC301\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/notifications",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('notification_id', response.notification.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get User Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/notifications",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "14. System Settings",
+      "item": [
+        {
+          "name": "Create System Setting",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"setting_key\": \"app.name\",\n  \"setting_value\": \"AttendEase\",\n  \"setting_type\": \"string\",\n  \"description\": \"Application name\",\n  \"is_public\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/system-settings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "system-settings"]
+            }
+          }
+        },
+        {
+          "name": "Get Public Settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/system-settings/public",
+              "host": ["{{base_url}}"],
+              "path": ["api", "system-settings", "public"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "15. Dashboard",
+      "item": [
+        {
+          "name": "Get Admin Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/admin",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "admin"]
+            }
+          }
+        },
+        {
+          "name": "Get Quick Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/quick-stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "quick-stats"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "16. Reports",
+      "item": [
+        {
+          "name": "Get Course Attendance Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/reports/attendance/course/{{course_assignment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reports", "attendance", "course", "{{course_assignment_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Attendance Summary Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/reports/attendance/summary",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reports", "attendance", "summary"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

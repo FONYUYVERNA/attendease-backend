@@ -1,0 +1,598 @@
+{
+  "validation_timestamp": "2025-06-21T11:53:38.925515",
+  "total_checks": 74,
+  "successful_checks": 54,
+  "success_rate": 73.0,
+  "errors": [
+    "models.import_error: Error importing models: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+    "routes.auth_import: Error importing auth: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+    "routes.users_import: Error importing users: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+    "routes.students_import: Error importing students: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+    "routes.lecturers_import: Error importing lecturers: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+    "routes.admins_import: Error importing admins: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+    "routes.departments_import: Error importing departments: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+    "routes.academic_years_import: Error importing academic_years: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+    "routes.semesters_import: Error importing semesters: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+    "routes.courses_import: Error importing courses: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+    "routes.geofence_areas_import: Error importing geofence_areas: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+    "routes.course_assignments_import: Error importing course_assignments: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+    "routes.student_enrollments_import: Error importing student_enrollments: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+    "routes.attendance_sessions_import: Error importing attendance_sessions: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+    "routes.attendance_records_import: Error importing attendance_records: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+    "routes.notifications_import: Error importing notifications: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+    "routes.system_settings_import: Error importing system_settings: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+    "routes.dashboard_import: Error importing dashboard: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+    "routes.reports_import: Error importing reports: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>"
+  ],
+  "warnings": [
+    "documentation.README.md_exists: README.md not found"
+  ],
+  "results": {
+    "models": {
+      "status": "failed",
+      "details": [
+        {
+          "check": "import_error",
+          "status": "fail",
+          "message": "Error importing models: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+          "severity": "error",
+          "timestamp": "2025-06-21T11:53:38.609135"
+        }
+      ]
+    },
+    "routes": {
+      "status": "complete",
+      "details": [
+        {
+          "check": "auth_file_exists",
+          "status": "pass",
+          "message": "auth.py exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.609736"
+        },
+        {
+          "check": "auth_import",
+          "status": "fail",
+          "message": "Error importing auth: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+          "severity": "error",
+          "timestamp": "2025-06-21T11:53:38.626670"
+        },
+        {
+          "check": "users_file_exists",
+          "status": "pass",
+          "message": "users.py exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.626770"
+        },
+        {
+          "check": "users_import",
+          "status": "fail",
+          "message": "Error importing users: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+          "severity": "error",
+          "timestamp": "2025-06-21T11:53:38.641301"
+        },
+        {
+          "check": "students_file_exists",
+          "status": "pass",
+          "message": "students.py exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.641301"
+        },
+        {
+          "check": "students_import",
+          "status": "fail",
+          "message": "Error importing students: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+          "severity": "error",
+          "timestamp": "2025-06-21T11:53:38.657972"
+        },
+        {
+          "check": "lecturers_file_exists",
+          "status": "pass",
+          "message": "lecturers.py exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.657972"
+        },
+        {
+          "check": "lecturers_import",
+          "status": "fail",
+          "message": "Error importing lecturers: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+          "severity": "error",
+          "timestamp": "2025-06-21T11:53:38.672922"
+        },
+        {
+          "check": "admins_file_exists",
+          "status": "pass",
+          "message": "admins.py exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.672922"
+        },
+        {
+          "check": "admins_import",
+          "status": "fail",
+          "message": "Error importing admins: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+          "severity": "error",
+          "timestamp": "2025-06-21T11:53:38.686279"
+        },
+        {
+          "check": "departments_file_exists",
+          "status": "pass",
+          "message": "departments.py exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.686801"
+        },
+        {
+          "check": "departments_import",
+          "status": "fail",
+          "message": "Error importing departments: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+          "severity": "error",
+          "timestamp": "2025-06-21T11:53:38.699036"
+        },
+        {
+          "check": "academic_years_file_exists",
+          "status": "pass",
+          "message": "academic_years.py exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.699705"
+        },
+        {
+          "check": "academic_years_import",
+          "status": "fail",
+          "message": "Error importing academic_years: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+          "severity": "error",
+          "timestamp": "2025-06-21T11:53:38.711969"
+        },
+        {
+          "check": "semesters_file_exists",
+          "status": "pass",
+          "message": "semesters.py exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.712580"
+        },
+        {
+          "check": "semesters_import",
+          "status": "fail",
+          "message": "Error importing semesters: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+          "severity": "error",
+          "timestamp": "2025-06-21T11:53:38.723118"
+        },
+        {
+          "check": "courses_file_exists",
+          "status": "pass",
+          "message": "courses.py exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.723631"
+        },
+        {
+          "check": "courses_import",
+          "status": "fail",
+          "message": "Error importing courses: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+          "severity": "error",
+          "timestamp": "2025-06-21T11:53:38.731889"
+        },
+        {
+          "check": "geofence_areas_file_exists",
+          "status": "pass",
+          "message": "geofence_areas.py exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.731889"
+        },
+        {
+          "check": "geofence_areas_import",
+          "status": "fail",
+          "message": "Error importing geofence_areas: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+          "severity": "error",
+          "timestamp": "2025-06-21T11:53:38.742901"
+        },
+        {
+          "check": "course_assignments_file_exists",
+          "status": "pass",
+          "message": "course_assignments.py exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.743414"
+        },
+        {
+          "check": "course_assignments_import",
+          "status": "fail",
+          "message": "Error importing course_assignments: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+          "severity": "error",
+          "timestamp": "2025-06-21T11:53:38.759796"
+        },
+        {
+          "check": "student_enrollments_file_exists",
+          "status": "pass",
+          "message": "student_enrollments.py exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.759796"
+        },
+        {
+          "check": "student_enrollments_import",
+          "status": "fail",
+          "message": "Error importing student_enrollments: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+          "severity": "error",
+          "timestamp": "2025-06-21T11:53:38.773249"
+        },
+        {
+          "check": "attendance_sessions_file_exists",
+          "status": "pass",
+          "message": "attendance_sessions.py exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.773249"
+        },
+        {
+          "check": "attendance_sessions_import",
+          "status": "fail",
+          "message": "Error importing attendance_sessions: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+          "severity": "error",
+          "timestamp": "2025-06-21T11:53:38.787850"
+        },
+        {
+          "check": "attendance_records_file_exists",
+          "status": "pass",
+          "message": "attendance_records.py exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.787850"
+        },
+        {
+          "check": "attendance_records_import",
+          "status": "fail",
+          "message": "Error importing attendance_records: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+          "severity": "error",
+          "timestamp": "2025-06-21T11:53:38.800356"
+        },
+        {
+          "check": "notifications_file_exists",
+          "status": "pass",
+          "message": "notifications.py exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.801063"
+        },
+        {
+          "check": "notifications_import",
+          "status": "fail",
+          "message": "Error importing notifications: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+          "severity": "error",
+          "timestamp": "2025-06-21T11:53:38.813394"
+        },
+        {
+          "check": "system_settings_file_exists",
+          "status": "pass",
+          "message": "system_settings.py exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.813497"
+        },
+        {
+          "check": "system_settings_import",
+          "status": "fail",
+          "message": "Error importing system_settings: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+          "severity": "error",
+          "timestamp": "2025-06-21T11:53:38.828998"
+        },
+        {
+          "check": "dashboard_file_exists",
+          "status": "pass",
+          "message": "dashboard.py exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.829516"
+        },
+        {
+          "check": "dashboard_import",
+          "status": "fail",
+          "message": "Error importing dashboard: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+          "severity": "error",
+          "timestamp": "2025-06-21T11:53:38.854526"
+        },
+        {
+          "check": "reports_file_exists",
+          "status": "pass",
+          "message": "reports.py exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.855899"
+        },
+        {
+          "check": "reports_import",
+          "status": "fail",
+          "message": "Error importing reports: 'charmap' codec can't encode character '\\U0001f517' in position 0: character maps to <undefined>",
+          "severity": "error",
+          "timestamp": "2025-06-21T11:53:38.904898"
+        },
+        {
+          "check": "all_routes_present",
+          "status": "pass",
+          "message": "All required route files are present",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.904898"
+        }
+      ]
+    },
+    "database": {
+      "status": "complete",
+      "details": [
+        {
+          "check": "scripts_directory",
+          "status": "pass",
+          "message": "Scripts directory exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.904898"
+        },
+        {
+          "check": "create_database.sql_exists",
+          "status": "pass",
+          "message": "create_database.sql exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.904898"
+        },
+        {
+          "check": "attendease_schema.sql_exists",
+          "status": "pass",
+          "message": "attendease_schema.sql exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.904898"
+        },
+        {
+          "check": "migrations_directory",
+          "status": "pass",
+          "message": "Migrations directory exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.904898"
+        }
+      ]
+    },
+    "authentication": {
+      "status": "pending",
+      "details": []
+    },
+    "api_endpoints": {
+      "status": "pending",
+      "details": []
+    },
+    "configuration": {
+      "status": "complete",
+      "details": [
+        {
+          "check": "app_file_exists",
+          "status": "pass",
+          "message": "app.py exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.905896"
+        },
+        {
+          "check": "Flask_import",
+          "status": "pass",
+          "message": "Flask imported",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.906894"
+        },
+        {
+          "check": "SQLAlchemy_import",
+          "status": "pass",
+          "message": "SQLAlchemy imported",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.906894"
+        },
+        {
+          "check": "JWTManager_import",
+          "status": "pass",
+          "message": "JWTManager imported",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.906894"
+        },
+        {
+          "check": "Bcrypt_import",
+          "status": "pass",
+          "message": "Bcrypt imported",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.906894"
+        },
+        {
+          "check": "CORS_import",
+          "status": "pass",
+          "message": "CORS imported",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.906894"
+        },
+        {
+          "check": "blueprints_registered",
+          "status": "pass",
+          "message": "Blueprints are registered",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.906894"
+        },
+        {
+          "check": "error_handlers",
+          "status": "pass",
+          "message": "Error handlers defined",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.906894"
+        },
+        {
+          "check": "requirements_file",
+          "status": "pass",
+          "message": "requirements.txt exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.907898"
+        },
+        {
+          "check": "env_file",
+          "status": "pass",
+          "message": ".env file exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.907898"
+        }
+      ]
+    },
+    "dependencies": {
+      "status": "complete",
+      "details": [
+        {
+          "check": "Flask_listed",
+          "status": "pass",
+          "message": "Flask listed in requirements",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.908893"
+        },
+        {
+          "check": "Flask-SQLAlchemy_listed",
+          "status": "pass",
+          "message": "Flask-SQLAlchemy listed in requirements",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.908893"
+        },
+        {
+          "check": "Flask-JWT-Extended_listed",
+          "status": "pass",
+          "message": "Flask-JWT-Extended listed in requirements",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.908893"
+        },
+        {
+          "check": "Flask-Bcrypt_listed",
+          "status": "pass",
+          "message": "Flask-Bcrypt listed in requirements",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.908893"
+        },
+        {
+          "check": "Flask-CORS_listed",
+          "status": "pass",
+          "message": "Flask-CORS listed in requirements",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.908893"
+        },
+        {
+          "check": "psycopg2-binary_listed",
+          "status": "pass",
+          "message": "psycopg2-binary listed in requirements",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.908893"
+        },
+        {
+          "check": "python-dotenv_listed",
+          "status": "pass",
+          "message": "python-dotenv listed in requirements",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.908893"
+        },
+        {
+          "check": "Pillow_listed",
+          "status": "pass",
+          "message": "Pillow listed in requirements",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.908893"
+        },
+        {
+          "check": "face-recognition_listed",
+          "status": "pass",
+          "message": "face-recognition listed in requirements",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.908893"
+        },
+        {
+          "check": "all_packages_listed",
+          "status": "pass",
+          "message": "All required packages listed",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.908893"
+        }
+      ]
+    },
+    "security": {
+      "status": "complete",
+      "details": [
+        {
+          "check": "decorators_file",
+          "status": "pass",
+          "message": "Security decorators file exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.908893"
+        },
+        {
+          "check": "jwt_decorators",
+          "status": "pass",
+          "message": "JWT decorators implemented",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.909895"
+        },
+        {
+          "check": "password_hashing",
+          "status": "pass",
+          "message": "Password hashing configured",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.909895"
+        },
+        {
+          "check": "cors_configured",
+          "status": "pass",
+          "message": "CORS configured",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.909895"
+        }
+      ]
+    },
+    "documentation": {
+      "status": "complete",
+      "details": [
+        {
+          "check": "README.md_exists",
+          "status": "fail",
+          "message": "README.md not found",
+          "severity": "warning",
+          "timestamp": "2025-06-21T11:53:38.910894"
+        },
+        {
+          "check": "verification_report.md_exists",
+          "status": "pass",
+          "message": "verification_report.md exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.923605"
+        }
+      ]
+    },
+    "testing": {
+      "status": "complete",
+      "details": [
+        {
+          "check": "test_api.py_exists",
+          "status": "pass",
+          "message": "test_api.py exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.910894"
+        },
+        {
+          "check": "test_api_comprehensive.py_exists",
+          "status": "pass",
+          "message": "test_api_comprehensive.py exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.910894"
+        },
+        {
+          "check": "test_complete_verification.py_exists",
+          "status": "pass",
+          "message": "test_complete_verification.py exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.910894"
+        },
+        {
+          "check": "test_files_present",
+          "status": "pass",
+          "message": "3 test files found",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.910894"
+        },
+        {
+          "check": "AttendEase_API_Tests.postman_collection.json_exists",
+          "status": "pass",
+          "message": "AttendEase_API_Tests.postman_collection.json exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.910894"
+        },
+        {
+          "check": "complete_postman_collection.json_exists",
+          "status": "pass",
+          "message": "complete_postman_collection.json exists",
+          "severity": "info",
+          "timestamp": "2025-06-21T11:53:38.910894"
+        }
+      ]
+    }
+  }
+}

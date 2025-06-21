@@ -1,0 +1,376 @@
+{
+	"id": "e6f2bcf2-68ee-44bb-9d6c-7dfc7978e25b",
+	"name": "AttendEase Self-Contained Test Suite",
+	"timestamp": "2025-06-21T14:05:25.527Z",
+	"collection_id": "34205549-c80db938-57d0-4e43-80c1-d3ebf954ece9",
+	"folder_id": 0,
+	"environment_id": "0",
+	"totalPass": 10,
+	"delay": 0,
+	"persist": true,
+	"status": "finished",
+	"startedAt": "2025-06-21T14:04:45.556Z",
+	"totalFail": 0,
+	"results": [
+		{
+			"id": "044e1aba-560a-4384-b872-6f887218efab",
+			"name": "Health Check",
+			"url": "http://localhost:5000/",
+			"time": 29,
+			"responseCode": {
+				"code": 404,
+				"name": "NOT FOUND"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				29
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "cdfa285b-d639-44d4-abde-77ff0dcef84f",
+			"name": "1.1 Register Admin",
+			"url": "http://localhost:5000/api/auth/register",
+			"time": 19740,
+			"responseCode": {
+				"code": 201,
+				"name": "CREATED"
+			},
+			"tests": {
+				"Admin registration successful": true
+			},
+			"testPassFailCounts": {
+				"Admin registration successful": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				19740
+			],
+			"allTests": [
+				{
+					"Admin registration successful": true
+				}
+			]
+		},
+		{
+			"id": "9d62175a-cb46-46ac-99c3-4f20436e9d8f",
+			"name": "1.2 Login Admin",
+			"url": "http://localhost:5000/api/auth/login",
+			"time": 778,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Admin login successful": true
+			},
+			"testPassFailCounts": {
+				"Admin login successful": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				778
+			],
+			"allTests": [
+				{
+					"Admin login successful": true
+				}
+			]
+		},
+		{
+			"id": "39a2dbf2-1d7e-456b-8f5d-a441322a7647",
+			"name": "2.1 Create Department",
+			"url": "http://localhost:5000/api/departments",
+			"time": 162,
+			"responseCode": {
+				"code": 201,
+				"name": "CREATED"
+			},
+			"tests": {
+				"Department creation successful": true
+			},
+			"testPassFailCounts": {
+				"Department creation successful": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				162
+			],
+			"allTests": [
+				{
+					"Department creation successful": true
+				}
+			]
+		},
+		{
+			"id": "01222b6f-d11c-40f2-b7e9-5258655f1915",
+			"name": "3.1 Create Course",
+			"url": "http://localhost:5000/api/courses",
+			"time": 183,
+			"responseCode": {
+				"code": 201,
+				"name": "CREATED"
+			},
+			"tests": {
+				"Course creation successful": true
+			},
+			"testPassFailCounts": {
+				"Course creation successful": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				183
+			],
+			"allTests": [
+				{
+					"Course creation successful": true
+				}
+			]
+		},
+		{
+			"id": "850cadc9-944f-4589-80c9-06a96e631282",
+			"name": "4.1 Register Student",
+			"url": "http://localhost:5000/api/auth/register",
+			"time": 15725,
+			"responseCode": {
+				"code": 201,
+				"name": "CREATED"
+			},
+			"tests": {
+				"Student registration successful": true
+			},
+			"testPassFailCounts": {
+				"Student registration successful": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				15725
+			],
+			"allTests": [
+				{
+					"Student registration successful": true
+				}
+			]
+		},
+		{
+			"id": "6efec6c7-5cc3-4d5c-a381-4b0603d46e0c",
+			"name": "4.2 Create Student Profile",
+			"url": "http://localhost:5000/api/students",
+			"time": 78,
+			"responseCode": {
+				"code": 201,
+				"name": "CREATED"
+			},
+			"tests": {
+				"Student profile creation successful": true
+			},
+			"testPassFailCounts": {
+				"Student profile creation successful": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				78
+			],
+			"allTests": [
+				{
+					"Student profile creation successful": true
+				}
+			]
+		},
+		{
+			"id": "04f1822b-ee8b-40b4-ad68-a736f805d63e",
+			"name": "4.3 Login Student",
+			"url": "http://localhost:5000/api/auth/login",
+			"time": 399,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Student login successful": true
+			},
+			"testPassFailCounts": {
+				"Student login successful": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				399
+			],
+			"allTests": [
+				{
+					"Student login successful": true
+				}
+			]
+		},
+		{
+			"id": "723268d6-a8bc-493f-9695-d799d6eefd59",
+			"name": "5.1 Admin Dashboard",
+			"url": "http://localhost:5000/api/dashboard/admin",
+			"time": 22,
+			"responseCode": {
+				"code": 404,
+				"name": "NOT FOUND"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				22
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "e7e1535e-78b9-4e41-868d-5ba809f16880",
+			"name": "5.2 Student Dashboard",
+			"url": "http://localhost:5000/api/dashboard/student",
+			"time": 93,
+			"responseCode": {
+				"code": 404,
+				"name": "NOT FOUND"
+			},
+			"tests": {
+				"Student dashboard response handled": true
+			},
+			"testPassFailCounts": {
+				"Student dashboard response handled": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				93
+			],
+			"allTests": [
+				{
+					"Student dashboard response handled": true
+				}
+			]
+		},
+		{
+			"id": "574b52ca-5c0f-4214-9f3b-332336ce2833",
+			"name": "6.1 Get All Users",
+			"url": "http://localhost:5000/api/users",
+			"time": 332,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Users endpoint accessible": true
+			},
+			"testPassFailCounts": {
+				"Users endpoint accessible": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				332
+			],
+			"allTests": [
+				{
+					"Users endpoint accessible": true
+				}
+			]
+		},
+		{
+			"id": "19957a38-89bd-4fb5-b22d-69a6441ff56a",
+			"name": "6.2 Test Summary",
+			"url": "http://localhost:5000/api/auth/me",
+			"time": 238,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"System validation complete": true
+			},
+			"testPassFailCounts": {
+				"System validation complete": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				238
+			],
+			"allTests": [
+				{
+					"System validation complete": true
+				}
+			]
+		}
+	],
+	"count": 1,
+	"totalTime": 37779,
+	"collection": {
+		"requests": [
+			{
+				"id": "044e1aba-560a-4384-b872-6f887218efab",
+				"method": "GET"
+			},
+			{
+				"id": "cdfa285b-d639-44d4-abde-77ff0dcef84f",
+				"method": "POST"
+			},
+			{
+				"id": "9d62175a-cb46-46ac-99c3-4f20436e9d8f",
+				"method": "POST"
+			},
+			{
+				"id": "39a2dbf2-1d7e-456b-8f5d-a441322a7647",
+				"method": "POST"
+			},
+			{
+				"id": "01222b6f-d11c-40f2-b7e9-5258655f1915",
+				"method": "POST"
+			},
+			{
+				"id": "850cadc9-944f-4589-80c9-06a96e631282",
+				"method": "POST"
+			},
+			{
+				"id": "6efec6c7-5cc3-4d5c-a381-4b0603d46e0c",
+				"method": "POST"
+			},
+			{
+				"id": "04f1822b-ee8b-40b4-ad68-a736f805d63e",
+				"method": "POST"
+			},
+			{
+				"id": "723268d6-a8bc-493f-9695-d799d6eefd59",
+				"method": "GET"
+			},
+			{
+				"id": "e7e1535e-78b9-4e41-868d-5ba809f16880",
+				"method": "GET"
+			},
+			{
+				"id": "574b52ca-5c0f-4214-9f3b-332336ce2833",
+				"method": "GET"
+			},
+			{
+				"id": "19957a38-89bd-4fb5-b22d-69a6441ff56a",
+				"method": "GET"
+			}
+		]
+	}
+}
