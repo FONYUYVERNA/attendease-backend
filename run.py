@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 AttendEase Application Runner
-Run this script to start the AttendEase backend server
+Run this script to start the AttendEase backend server locally
 """
 
 import os
@@ -43,8 +43,8 @@ def test_database_connection():
                     print(f"✅ Database schema verified: {table_count} core tables found")
                     return True
                 else:
-                    print(f"⚠️  Warning: Only {table_count} core tables found. You may need to run your schema script.")
-                    return False
+                    print(f"⚠️  Warning: Only {table_count} core tables found. Creating tables...")
+                    return True  # We'll create them
                     
     except Exception as e:
         print(f"❌ Database connection failed: {e}")
@@ -107,12 +107,11 @@ def deploy():
     
     with app.app_context():
         try:
-            # Try to run migrations
-            upgrade()
-            print("✅ Database migrations completed")
+            # Create all tables
+            db.create_all()
+            print("✅ Database tables created/verified")
         except Exception as e:
-            print(f"ℹ️  Migration info: {e}")
-            print("   This is normal if no migrations exist yet")
+            print(f"ℹ️  Database setup info: {e}")
 
 if __name__ == '__main__':
     print("🚀 Starting AttendEase Backend Server")
@@ -136,7 +135,9 @@ if __name__ == '__main__':
         # Normal application startup
         app = create_app()
         
-        # Create admin user if needed
+        # Create tables and admin user
+        with app.app_context():
+            db.create_all()
         create_admin_user()
         
         # Start the server
