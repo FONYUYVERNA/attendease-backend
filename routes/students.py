@@ -88,15 +88,23 @@ def create_student():
         ]
         validate_required_fields(data, required_fields)
         
-        # Validate level enum
-        valid_levels = ['100', '200', '300', '400', '500']
+        # Validate level enum - MUST match database schema exactly
+        valid_levels = ['200', '300', '400', '500']  # Fixed: removed '100'
         if data['level'] not in valid_levels:
-            return jsonify({'error': f'Invalid level. Must be one of: {", ".join(valid_levels)}'}), 400
+            return jsonify({
+                'error': f'Invalid level. Must be one of: {", ".join(valid_levels)}',
+                'provided': data['level'],
+                'valid_options': valid_levels
+            }), 400
 
-        # Validate gender enum  
-        valid_genders = ['Male', 'Female', 'Other']
+        # Validate gender enum - MUST match database schema exactly
+        valid_genders = ['Male', 'Female']  # Fixed: removed 'Other'
         if data['gender'] not in valid_genders:
-            return jsonify({'error': f'Invalid gender. Must be one of: {", ".join(valid_genders)}'}), 400
+            return jsonify({
+                'error': f'Invalid gender. Must be one of: {", ".join(valid_genders)}',
+                'provided': data['gender'],
+                'valid_options': valid_genders
+            }), 400
         
         # Validate matricle number format
         validate_matricle_number(data['matricle_number'])
@@ -107,19 +115,24 @@ def create_student():
         
         # Check if user exists and is a student
         user = User.query.get(data['user_id'])
-        if not user or user.user_type != 'student':
-            return jsonify({'error': 'Invalid user or user is not a student'}), 400
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        if user.user_type != 'student':
+            return jsonify({'error': 'User is not a student type'}), 400
         
         # Check if student profile already exists for this user
-        if Student.query.filter_by(user_id=data['user_id']).first():
+        existing_student = Student.query.filter_by(user_id=data['user_id']).first()
+        if existing_student:
             return jsonify({'error': 'Student profile already exists for this user'}), 409
         
         # Check if matricle number already exists
-        if Student.query.filter_by(matricle_number=data['matricle_number']).first():
+        existing_matricle = Student.query.filter_by(matricle_number=data['matricle_number']).first()
+        if existing_matricle:
             return jsonify({'error': 'Matricle number already exists'}), 409
         
         # Check if department exists
-        if not Department.query.get(data['department_id']):
+        department = Department.query.get(data['department_id'])
+        if not department:
             return jsonify({'error': 'Department not found'}), 404
         
         # Create student
@@ -199,6 +212,14 @@ def update_student(student_id):
                     ).first()
                     if existing:
                         return jsonify({'error': 'Matricle number already exists'}), 409
+                if field == 'level':
+                    valid_levels = ['200', '300', '400', '500']
+                    if data[field] not in valid_levels:
+                        return jsonify({'error': f'Invalid level. Must be one of: {", ".join(valid_levels)}'}), 400
+                if field == 'gender':
+                    valid_genders = ['Male', 'Female']
+                    if data[field] not in valid_genders:
+                        return jsonify({'error': f'Invalid gender. Must be one of: {", ".join(valid_genders)}'}), 400
                 
                 setattr(student, field, data[field])
         

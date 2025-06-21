@@ -2,6 +2,9 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from app import db
 from models.department import Department
+from models.student import Student
+from models.course import Course
+from models.user import User
 from utils.decorators import admin_required
 from utils.validators import validate_required_fields, ValidationError
 
@@ -12,20 +15,10 @@ departments_bp = Blueprint('departments', __name__)
 def get_all_departments():
     try:
         active_only = request.args.get('active_only', 'true').lower() == 'true'
-        search = request.args.get('search')
         
         query = Department.query
-        
         if active_only:
             query = query.filter(Department.is_active == True)
-        
-        if search:
-            query = query.filter(
-                db.or_(
-                    Department.name.ilike(f'%{search}%'),
-                    Department.code.ilike(f'%{search}%')
-                )
-            )
         
         departments = query.order_by(Department.name).all()
         
@@ -61,17 +54,19 @@ def create_department():
         validate_required_fields(data, required_fields)
         
         # Check if department name already exists
-        if Department.query.filter_by(name=data['name']).first():
+        existing_name = Department.query.filter_by(name=data['name']).first()
+        if existing_name:
             return jsonify({'error': 'Department name already exists'}), 409
         
         # Check if department code already exists
-        if Department.query.filter_by(code=data['code']).first():
+        existing_code = Department.query.filter_by(code=data['code']).first()
+        if existing_code:
             return jsonify({'error': 'Department code already exists'}), 409
         
         # Create department
         department = Department(
             name=data['name'],
-            code=data['code'].upper(),
+            code=data['code'],
             description=data.get('description')
         )
         
@@ -100,9 +95,9 @@ def update_department(department_id):
         
         data = request.get_json()
         
-        # Update fields
+        # Update name if provided
         if 'name' in data:
-            # Check if department name already exists for another department
+            # Check if new name already exists for another department
             existing = Department.query.filter(
                 Department.name == data['name'],
                 Department.id != department_id
@@ -111,19 +106,22 @@ def update_department(department_id):
                 return jsonify({'error': 'Department name already exists'}), 409
             department.name = data['name']
         
+        # Update code if provided
         if 'code' in data:
-            # Check if department code already exists for another department
+            # Check if new code already exists for another department
             existing = Department.query.filter(
-                Department.code == data['code'].upper(),
+                Department.code == data['code'],
                 Department.id != department_id
             ).first()
             if existing:
                 return jsonify({'error': 'Department code already exists'}), 409
-            department.code = data['code'].upper()
+            department.code = data['code']
         
+        # Update description
         if 'description' in data:
             department.description = data['description']
         
+        # Update active status
         if 'is_active' in data:
             department.is_active = data['is_active']
         
@@ -147,12 +145,19 @@ def delete_department(department_id):
         if not department:
             return jsonify({'error': 'Department not found'}), 404
         
-        # Check if department has associated courses or students
-        if department.courses or department.students:
+        # Check if department has associated students or courses
+        student_count = Student.query.filter_by(department_id=department_id).count()
+        course_count = Course.query.filter_by(department_id=department_id).count()
+        
+        if student_count > 0 or course_count > 0:
             # Soft delete - deactivate instead of deleting
             department.is_active = False
             db.session.commit()
-            return jsonify({'message': 'Department deactivated successfully'}), 200
+            return jsonify({
+                'message': 'Department deactivated successfully (has associated records)',
+                'students_count': student_count,
+                'courses_count': course_count
+            }), 200
         
         # Hard delete if no associations
         db.session.delete(department)
@@ -165,7 +170,7 @@ def delete_department(department_id):
         return jsonify({'error': str(e)}), 500
 
 @departments_bp.route('/<department_id>/statistics', methods=['GET'])
-@jwt_required()
+@admin_required
 def get_department_statistics(department_id):
     try:
         department = Department.query.get(department_id)
@@ -173,27 +178,50 @@ def get_department_statistics(department_id):
         if not department:
             return jsonify({'error': 'Department not found'}), 404
         
-        # Get student counts by level
-        from models.student import Student
+        # Get student statistics for this department
+        total_students = Student.query.join(User).filter(
+            Student.department_id == department_id,
+            User.is_active == True
+        ).count()
+        
+        # Students by level
         level_stats = db.session.query(
             Student.level,
             db.func.count(Student.id).label('count')
-        ).filter(Student.department_id == department_id).group_by(Student.level).all()
+        ).join(User).filter(
+            Student.department_id == department_id,
+            User.is_active == True
+        ).group_by(Student.level).all()
         
-        # Get course count
-        course_count = len([course for course in department.courses if course.is_active])
+        # Total courses
+        total_courses = Course.query.filter(
+            Course.department_id == department_id,
+            Course.is_active == True
+        ).count()
         
-        # Total students
-        total_students = len(department.students)
+        # Courses by level
+        course_level_stats = db.session.query(
+            Course.level,
+            db.func.count(Course.id).label('count')
+        ).filter(
+            Course.department_id == department_id,
+            Course.is_active == True
+        ).group_by(Course.level).all()
         
         return jsonify({
             'department': department.to_dict(),
-            'total_students': total_students,
-            'total_courses': course_count,
-            'students_by_level': [
-                {'level': stat.level, 'count': stat.count} 
-                for stat in level_stats
-            ]
+            'statistics': {
+                'total_students': total_students,
+                'total_courses': total_courses,
+                'students_by_level': [
+                    {'level': stat.level, 'count': stat.count} 
+                    for stat in level_stats
+                ],
+                'courses_by_level': [
+                    {'level': stat.level, 'count': stat.count} 
+                    for stat in course_level_stats
+                ]
+            }
         }), 200
         
     except Exception as e:
