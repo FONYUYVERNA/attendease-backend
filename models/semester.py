@@ -35,3 +35,8 @@ class Semester(db.Model):
             'is_current': self.is_current,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
+
+    def validate_dates(self):
+        if self.start_date and self.end_date and self.start_date >= self.end_date:
+            raise ValueError("Start date must be before end date")
+        return True

@@ -80,18 +80,30 @@ def create_semester():
         if not academic_year:
             return jsonify({'error': 'Academic year not found'}), 404
         
-        # Parse dates
-        start_date = datetime.strptime(data['start_date'], '%Y-%m-%d').date()
-        end_date = datetime.strptime(data['end_date'], '%Y-%m-%d').date()
-        
+        # Parse and validate dates
+        try:
+            start_date = datetime.strptime(data['start_date'], '%Y-%m-%d').date()
+            end_date = datetime.strptime(data['end_date'], '%Y-%m-%d').date()
+        except ValueError:
+            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+
         # Validate date logic
         if start_date >= end_date:
             return jsonify({'error': 'Start date must be before end date'}), 400
-        
-        # Validate dates are within academic year
+
+        # Check if academic year exists and is valid
+        academic_year = AcademicYear.query.get(data['academic_year_id'])
+        if not academic_year:
+            return jsonify({'error': 'Academic year not found'}), 404
+
+        # Validate dates are within academic year (with some tolerance)
         if (start_date < academic_year.start_date or 
             end_date > academic_year.end_date):
-            return jsonify({'error': 'Semester dates must be within academic year dates'}), 400
+            return jsonify({
+                'error': 'Semester dates must be within academic year dates',
+                'academic_year_start': academic_year.start_date.isoformat(),
+                'academic_year_end': academic_year.end_date.isoformat()
+            }), 400
         
         # Check if semester already exists for this academic year and number
         existing = Semester.query.filter_by(

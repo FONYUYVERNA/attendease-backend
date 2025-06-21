@@ -105,6 +105,11 @@ def create_course_assignment():
         if not semester:
             return jsonify({'error': 'Semester not found'}), 404
         
+        # Optional: Check if semester is current or future
+        from datetime import date
+        if semester.end_date < date.today():
+            return jsonify({'error': 'Cannot assign courses to past semesters'}), 400
+        
         # Check if geofence area exists (if provided)
         if data.get('geofence_area_id'):
             geofence_area = GeofenceArea.query.get(data['geofence_area_id'])

@@ -88,6 +88,16 @@ def create_student():
         ]
         validate_required_fields(data, required_fields)
         
+        # Validate level enum
+        valid_levels = ['100', '200', '300', '400', '500']
+        if data['level'] not in valid_levels:
+            return jsonify({'error': f'Invalid level. Must be one of: {", ".join(valid_levels)}'}), 400
+
+        # Validate gender enum  
+        valid_genders = ['Male', 'Female', 'Other']
+        if data['gender'] not in valid_genders:
+            return jsonify({'error': f'Invalid gender. Must be one of: {", ".join(valid_genders)}'}), 400
+        
         # Validate matricle number format
         validate_matricle_number(data['matricle_number'])
         
