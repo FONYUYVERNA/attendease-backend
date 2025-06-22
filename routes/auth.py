@@ -8,6 +8,7 @@ from models.lecturer import Lecturer
 from models.admin import Admin
 from models.user_preference import UserPreference
 from utils.validators import validate_email_format, validate_password, ValidationError
+from utils.ub_validators import validate_email_by_user_type  # Import UB validator
 from datetime import datetime, timedelta
 
 auth_bp = Blueprint('auth', __name__)
@@ -23,24 +24,27 @@ def register():
             if field not in data:
                 return jsonify({'error': f'Missing required field: {field}'}), 400
         
-        # Validate email format
-        email = validate_email_format(data['email'])
+        # Validate user type
+        if data['user_type'] not in ['student', 'lecturer', 'admin']:
+            return jsonify({'error': 'Invalid user type'}), 400
+        
+        # Use UB-specific email validation based on user type
+        try:
+            validate_email_by_user_type(data['email'], data['user_type'])
+        except ValidationError as e:
+            return jsonify({'error': e.message, 'field': e.field}), 400
         
         # Validate password
         validate_password(data['password'])
         
         # Check if user already exists
-        if User.query.filter_by(email=email).first():
+        if User.query.filter_by(email=data['email']).first():
             return jsonify({'error': 'Email already registered'}), 409
-        
-        # Validate user type
-        if data['user_type'] not in ['student', 'lecturer', 'admin']:
-            return jsonify({'error': 'Invalid user type'}), 400
         
         # Create user
         password_hash = bcrypt.generate_password_hash(data['password']).decode('utf-8')
         user = User(
-            email=email,
+            email=data['email'].lower(),  # Store emails in lowercase
             password_hash=password_hash,
             user_type=data['user_type']
         )
@@ -56,7 +60,8 @@ def register():
         
         return jsonify({
             'message': 'User registered successfully',
-            'user': user.to_dict()
+            'user': user.to_dict(),
+            'email_type': 'institutional' if data['user_type'] == 'lecturer' else 'personal'
         }), 201
         
     except ValidationError as e:
@@ -73,8 +78,8 @@ def login():
         if not data.get('email') or not data.get('password'):
             return jsonify({'error': 'Email and password required'}), 400
         
-        # Find user
-        user = User.query.filter_by(email=data['email']).first()
+        # Find user (case-insensitive email search)
+        user = User.query.filter_by(email=data['email'].lower()).first()
         
         if not user or not bcrypt.check_password_hash(user.password_hash, data['password']):
             return jsonify({'error': 'Invalid credentials'}), 401
@@ -177,3 +182,28 @@ def change_password():
 def logout():
     # In a more sophisticated setup, you would blacklist the token
     return jsonify({'message': 'Logged out successfully'}), 200
+
+@auth_bp.route('/validate-email', methods=['POST'])
+def validate_email_for_user_type():
+    """
+    Validate email format based on user type (UB FET specific)
+    """
+    try:
+        data = request.get_json()
+        
+        if not data.get('email') or not data.get('user_type'):
+            return jsonify({'error': 'Email and user_type required'}), 400
+        
+        validate_email_by_user_type(data['email'], data['user_type'])
+        
+        return jsonify({
+            'message': 'Email format is valid',
+            'email': data['email'],
+            'user_type': data['user_type'],
+            'email_type': 'institutional' if data['user_type'] == 'lecturer' else 'personal'
+        }), 200
+        
+    except ValidationError as e:
+        return jsonify({'error': e.message, 'field': e.field}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

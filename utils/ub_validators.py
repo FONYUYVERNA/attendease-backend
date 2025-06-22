@@ -87,24 +87,62 @@ def validate_ub_course_code(course_code, department_code=None):
 def validate_ub_lecturer_email(email):
     """
     Validate University of Buea lecturer institutional email
-    Based on UB email format research: firstname.lastname@ubuea.cm
+    LECTURERS ONLY: Must use firstname.lastname@ubuea.cm format
     """
     if not email:
         raise ValidationError("Email is required", "email")
     
-    # UB institutional email pattern
+    # UB institutional email pattern for LECTURERS
     ub_pattern = r'^[a-zA-Z]+\.[a-zA-Z]+@ubuea\.cm$'
     
-    if re.match(ub_pattern, email.lower()):
-        return True  # Valid UB institutional email
+    if not re.match(ub_pattern, email.lower()):
+        raise ValidationError(
+            "Invalid UB lecturer email format. Expected: firstname.lastname@ubuea.cm",
+            "email"
+        )
     
-    # Also allow general email format for external lecturers
+    return True
+
+def validate_ub_student_email(email):
+    """
+    Validate student email - can be any valid email format
+    STUDENTS: Use personal emails since institutional emails are not active
+    """
+    if not email:
+        raise ValidationError("Email is required", "email")
+    
+    # General email validation for students
     general_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     
     if not re.match(general_pattern, email.lower()):
         raise ValidationError("Invalid email format", "email")
     
-    return False  # Valid email but not UB institutional
+    # Optional: Warn if student tries to use institutional email
+    if '@ubuea.cm' in email.lower():
+        raise ValidationError(
+            "Students should use personal emails. UB institutional emails are not active for students.",
+            "email"
+        )
+    
+    return True
+
+def validate_email_by_user_type(email, user_type):
+    """
+    Validate email based on user type
+    - Lecturers: Must use @ubuea.cm institutional email
+    - Students: Must use personal email (not @ubuea.cm)
+    - Admins: Any valid email format
+    """
+    if user_type == 'lecturer':
+        return validate_ub_lecturer_email(email)
+    elif user_type == 'student':
+        return validate_ub_student_email(email)
+    else:  # admin or other
+        # General email validation
+        general_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(general_pattern, email.lower()):
+            raise ValidationError("Invalid email format", "email")
+        return True
 
 def get_department_from_course_code(course_code):
     """
@@ -150,7 +188,7 @@ def generate_ub_matricle_number(year=None):
 def validate_ub_classroom_name(classroom_name):
     """
     Validate UB FET classroom naming convention
-    Valid formats: FET-BGFK, FET-Hall 1, FET-Hall 2, Tech 1, Tech 2, Tech 3, Tech 4
+    Valid formats: FET-BGFL, FET-Hall 1, FET-Hall 2, Tech 1, Tech 2, Tech 3, Tech 4
     """
     if not classroom_name:
         raise ValidationError("Classroom name is required", "classroom_name")
@@ -170,7 +208,7 @@ def validate_ub_classroom_name(classroom_name):
     # Return building and floor information
     if classroom_name.startswith('FET'):
         building = 'FET Building'
-        floor = 'Ground Floor' if 'BGFK' in classroom_name else '1st Floor'
+        floor = 'Ground Floor' if 'BGFL' in classroom_name else '1st Floor'
     else:  # Tech classrooms
         building = 'Technology Building'
         floor = 'Ground Floor' if classroom_name in ['Tech 1', 'Tech 2'] else '1st Floor'
