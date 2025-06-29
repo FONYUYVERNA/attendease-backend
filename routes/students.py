@@ -106,8 +106,12 @@ def create_student():
                 'valid_options': valid_genders
             }), 400
         
-        # Validate matricle number format
+        # Validate matricle number format and uniqueness
         validate_matricle_number(data['matricle_number'])
+        try:
+            Student.validate_matricle_uniqueness(data['matricle_number'])
+        except ValidationError as e:
+            return jsonify({'error': e.message, 'field': e.field}), 409
         
         # Validate phone number if provided
         if data.get('phone_number'):
@@ -124,11 +128,6 @@ def create_student():
         existing_student = Student.query.filter_by(user_id=data['user_id']).first()
         if existing_student:
             return jsonify({'error': 'Student profile already exists for this user'}), 409
-        
-        # Check if matricle number already exists
-        existing_matricle = Student.query.filter_by(matricle_number=data['matricle_number']).first()
-        if existing_matricle:
-            return jsonify({'error': 'Matricle number already exists'}), 409
         
         # Check if department exists
         department = Department.query.get(data['department_id'])
@@ -205,13 +204,10 @@ def update_student(student_id):
                     validate_phone_number(data[field])
                 if field == 'matricle_number':
                     validate_matricle_number(data[field])
-                    # Check if matricle number already exists for another student
-                    existing = Student.query.filter(
-                        Student.matricle_number == data[field],
-                        Student.id != student_id
-                    ).first()
-                    if existing:
-                        return jsonify({'error': 'Matricle number already exists'}), 409
+                    try:
+                        Student.validate_matricle_uniqueness(data[field], student_id)
+                    except ValidationError as e:
+                        return jsonify({'error': e.message, 'field': e.field}), 409
                 if field == 'level':
                     valid_levels = ['200', '300', '400', '500']
                     if data[field] not in valid_levels:

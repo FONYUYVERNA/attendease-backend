@@ -100,9 +100,13 @@ def create_lecturer():
         if Lecturer.query.filter_by(user_id=data['user_id']).first():
             return jsonify({'error': 'Lecturer profile already exists for this user'}), 409
         
-        # Check if lecturer ID already exists
-        if Lecturer.query.filter_by(lecturer_id=data['lecturer_id']).first():
-            return jsonify({'error': 'Lecturer ID already exists'}), 409
+        # Validate that only admins can assign lecturer IDs
+        try:
+            current_user = get_current_user()
+            Lecturer.validate_lecturer_id_assignment(data['lecturer_id'], current_user.user_type)
+            Lecturer.validate_lecturer_id_uniqueness(data['lecturer_id'])
+        except ValidationError as e:
+            return jsonify({'error': e.message, 'field': e.field}), 403 if 'administrator' in e.message else 409
         
         # Check if institutional email already exists
         if (data.get('institutional_email') and 
@@ -185,13 +189,11 @@ def update_lecturer(lecturer_id):
                     if existing:
                         return jsonify({'error': 'Institutional email already exists'}), 409
                 if field == 'lecturer_id':
-                    # Check if lecturer ID already exists for another lecturer
-                    existing = Lecturer.query.filter(
-                        Lecturer.lecturer_id == data[field],
-                        Lecturer.id != lecturer_id
-                    ).first()
-                    if existing:
-                        return jsonify({'error': 'Lecturer ID already exists'}), 409
+                    try:
+                        Lecturer.validate_lecturer_id_assignment(data[field], current_user.user_type)
+                        Lecturer.validate_lecturer_id_uniqueness(data[field], lecturer_id)
+                    except ValidationError as e:
+                        return jsonify({'error': e.message, 'field': e.field}), 403 if 'administrator' in e.message else 409
                 
                 setattr(lecturer, field, data[field])
         

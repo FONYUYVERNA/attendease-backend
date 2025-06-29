@@ -27,7 +27,7 @@ def validate_password(password):
     return True
 
 def validate_phone_number(phone):
-    if phone and not re.match(r"^\+?[\d\s\-\(\)]{10,15}$", phone):
+    if phone and not re.match(r"^\+?[\d\s\-$$$$]{10,15}$", phone):
         raise ValidationError("Invalid phone number format", "phone_number")
     return True
 
@@ -58,5 +58,38 @@ def validate_required_fields(data, required_fields):
     
     if missing_fields:
         raise ValidationError(f"Missing required fields: {', '.join(missing_fields)}")
+    
+    return True
+
+def validate_matricle_uniqueness(matricle_number, exclude_student_id=None):
+    """Validate that matricle number is unique across all students"""
+    from models.student import Student
+    
+    query = Student.query.filter_by(matricle_number=matricle_number)
+    if exclude_student_id:
+        query = query.filter(Student.id != exclude_student_id)
+    
+    if query.first():
+        raise ValidationError(f"Matricle number '{matricle_number}' is already registered to another student", "matricle_number")
+    
+    return True
+
+def validate_lecturer_id_uniqueness(lecturer_id, exclude_lecturer_id=None):
+    """Validate that lecturer ID is unique across all lecturers"""
+    from models.lecturer import Lecturer
+    
+    query = Lecturer.query.filter_by(lecturer_id=lecturer_id)
+    if exclude_lecturer_id:
+        query = query.filter(Lecturer.id != exclude_lecturer_id)
+    
+    if query.first():
+        raise ValidationError(f"Lecturer ID '{lecturer_id}' is already assigned to another lecturer", "lecturer_id")
+    
+    return True
+
+def validate_admin_only_operation(current_user_type, operation_name):
+    """Validate that only administrators can perform certain operations"""
+    if current_user_type != 'admin':
+        raise ValidationError(f"Only administrators can {operation_name}", "permission")
     
     return True

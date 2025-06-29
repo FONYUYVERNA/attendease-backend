@@ -218,3 +218,72 @@ def validate_ub_classroom_name(classroom_name):
         'floor': floor,
         'name': classroom_name
     }
+
+def validate_ub_matricle_uniqueness(matricle_number, exclude_student_id=None):
+    """
+    Validate UB FET matricle number uniqueness
+    Combines format validation with uniqueness check
+    """
+    # First validate format
+    validate_ub_matricle_number(matricle_number)
+    
+    # Then validate uniqueness
+    from models.student import Student
+    query = Student.query.filter_by(matricle_number=matricle_number.upper())
+    if exclude_student_id:
+        query = query.filter(Student.id != exclude_student_id)
+    
+    existing_student = query.first()
+    if existing_student:
+        raise ValidationError(
+            f"Matricle number '{matricle_number}' is already registered to another student",
+            "matricle_number"
+        )
+    
+    return True
+
+def validate_ub_lecturer_id_assignment(lecturer_id, current_user_type, exclude_lecturer_id=None):
+    """
+    Validate UB FET lecturer ID assignment
+    Only admins can assign lecturer IDs and they must be unique
+    """
+    # Validate admin permission
+    if current_user_type != 'admin':
+        raise ValidationError(
+            "Only administrators can assign lecturer IDs. Please contact your system administrator.",
+            "lecturer_id"
+        )
+    
+    # Validate uniqueness
+    from models.lecturer import Lecturer
+    query = Lecturer.query.filter_by(lecturer_id=lecturer_id)
+    if exclude_lecturer_id:
+        query = query.filter(Lecturer.id != exclude_lecturer_id)
+    
+    existing_lecturer = query.first()
+    if existing_lecturer:
+        raise ValidationError(
+            f"Lecturer ID '{lecturer_id}' is already assigned to another lecturer",
+            "lecturer_id"
+        )
+    
+    return True
+
+def get_available_lecturer_ids():
+    """
+    Get list of available lecturer IDs that haven't been assigned
+    This would typically be managed by admins
+    """
+    # This is a placeholder - in a real system, you might have a table
+    # of pre-approved lecturer IDs that admins can assign
+    from models.lecturer import Lecturer
+    
+    # Get all assigned lecturer IDs
+    assigned_ids = [l.lecturer_id for l in Lecturer.query.all()]
+    
+    # Return info about assigned IDs (for admin reference)
+    return {
+        'assigned_lecturer_ids': assigned_ids,
+        'total_assigned': len(assigned_ids),
+        'note': 'Lecturer IDs must be assigned by administrators only'
+    }
