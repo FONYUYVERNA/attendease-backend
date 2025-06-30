@@ -39,25 +39,3 @@ class Lecturer(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
-
-    @classmethod
-    def is_lecturer_id_unique(cls, lecturer_id, exclude_id=None):
-        """Check if lecturer ID is unique"""
-        query = cls.query.filter_by(lecturer_id=lecturer_id)
-        if exclude_id:
-            query = query.filter(cls.id != exclude_id)
-        return query.first() is None
-
-    @classmethod
-    def validate_lecturer_id_uniqueness(cls, lecturer_id, exclude_id=None):
-        """Validate lecturer ID uniqueness and raise error if not unique"""
-        if not cls.is_lecturer_id_unique(lecturer_id, exclude_id):
-            from utils.validators import ValidationError
-            raise ValidationError(f"Lecturer ID '{lecturer_id}' already exists", "lecturer_id")
-
-    @classmethod
-    def validate_lecturer_id_assignment(cls, lecturer_id, current_user_type):
-        """Validate that only admins can assign lecturer IDs"""
-        if current_user_type != 'admin':
-            from utils.validators import ValidationError
-            raise ValidationError("Only administrators can assign lecturer IDs", "lecturer_id")

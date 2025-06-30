@@ -45,18 +45,3 @@ class Student(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
-
-    @classmethod
-    def is_matricle_unique(cls, matricle_number, exclude_id=None):
-        """Check if matricle number is unique"""
-        query = cls.query.filter_by(matricle_number=matricle_number)
-        if exclude_id:
-            query = query.filter(cls.id != exclude_id)
-        return query.first() is None
-
-    @classmethod  
-    def validate_matricle_uniqueness(cls, matricle_number, exclude_id=None):
-        """Validate matricle number uniqueness and raise error if not unique"""
-        if not cls.is_matricle_unique(matricle_number, exclude_id):
-            from utils.validators import ValidationError
-            raise ValidationError(f"Matricle number '{matricle_number}' already exists", "matricle_number")

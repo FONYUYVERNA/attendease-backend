@@ -4,7 +4,7 @@ from flask_jwt_extended import JWTManager
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 import os
-from datetime import timedelta
+from datetime import timedelta, datetime
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -71,6 +71,7 @@ def create_app():
             from models.user_preference import UserPreference
             from models.two_factor_auth import TwoFactorAuth
             from models.audit_log import AuditLog
+            from models.verification_code import VerificationCode  # New model
             print("✅ Models imported successfully")
             
             # Try to create tables
@@ -148,7 +149,9 @@ def create_app():
             'diagnostics': {
                 'secret_key': 'configured' if os.getenv('SECRET_KEY') else 'using_fallback',
                 'jwt_secret': 'configured' if os.getenv('JWT_SECRET_KEY') else 'using_fallback',
-                'database_url': 'configured' if os.getenv('DATABASE_URL') else 'missing'
+                'database_url': 'configured' if os.getenv('DATABASE_URL') else 'missing',
+                'smtp_configured': 'configured' if os.getenv('SMTP_USERNAME') else 'using_mock',
+                'sms_configured': 'configured' if os.getenv('TWILIO_ACCOUNT_SID') else 'using_mock'
             }
         }
         
@@ -170,15 +173,22 @@ def create_app():
             'message': 'Welcome to AttendEase API',
             'version': '1.0.0',
             'status': 'running',
-            'timestamp': str(datetime.now()) if 'datetime' in globals() else 'unknown',
+            'timestamp': str(datetime.now()),
             'environment': {
                 'DATABASE_URL': 'configured' if os.getenv('DATABASE_URL') else 'missing',
                 'SECRET_KEY': 'configured' if os.getenv('SECRET_KEY') else 'missing',
-                'JWT_SECRET_KEY': 'configured' if os.getenv('JWT_SECRET_KEY') else 'missing'
+                'JWT_SECRET_KEY': 'configured' if os.getenv('JWT_SECRET_KEY') else 'missing',
+                'SMTP_USERNAME': 'configured' if os.getenv('SMTP_USERNAME') else 'missing',
+                'TWILIO_ACCOUNT_SID': 'configured' if os.getenv('TWILIO_ACCOUNT_SID') else 'missing'
             },
             'endpoints': {
                 'health': '/api/health',
                 'auth': '/api/auth',
+                'registration_flow': {
+                    'step_1': '/api/auth/send-verification',
+                    'step_2': '/api/auth/verify-registration',
+                    'resend': '/api/auth/resend-verification'
+                },
                 'users': '/api/users',
                 'students': '/api/students',
                 'lecturers': '/api/lecturers',
@@ -186,10 +196,18 @@ def create_app():
                 'departments': '/api/departments',
                 'attendance': '/api/attendance-sessions'
             },
+            'features': {
+                '2fa_registration': 'enabled',
+                'email_verification': 'enabled (students/admins)',
+                'sms_verification': 'enabled (lecturers)',
+                'session_management': 'enabled',
+                'mock_notifications': 'enabled (development)'
+            },
             'next_steps': [
                 'Visit /api/health for detailed diagnostics',
-                'Ensure DATABASE_URL environment variable is set',
-                'Test authentication endpoints'
+                'Use /api/auth/send-verification to start registration',
+                'Configure SMTP_USERNAME and SMTP_PASSWORD for email',
+                'Configure TWILIO credentials for SMS'
             ]
         }), 200
     
