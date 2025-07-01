@@ -91,333 +91,419 @@ def send_verification_code():
             purpose='registration'
         )
         
-        print(f"🔑 Generated verification code: {verification_code.code}")
-        
         db.session.add(verification_code)
         db.session.commit()
         
-        print(f"💾 Saved verification code to database")
+        print(f"✅ Verification code created: {verification_code.id}")
+        print(f"🔢 Code: {verification_code.code}")
         
-        # Send verification code
-        success, message = NotificationService.send_verification_code(
-            email, phone_number, verification_code.code, user_type
+        # Send notification with the code
+        delivery_method = 'SMS' if user_type == 'lecturer' and phone_number else 'Email'
+        contact = phone_number if user_type == 'lecturer' and phone_number else email
+        
+        # Send the notification
+        NotificationService.send_verification_code(
+            code=verification_code.code,
+            contact=contact,
+            delivery_method=delivery_method
         )
         
-        print(f"📤 Notification result: success={success}, message={message}")
-        
-        if success:
-            return jsonify({
-                'message': 'Verification code sent successfully',
-                'verification_id': str(verification_code.id),
-                'expires_at': verification_code.expires_at.isoformat(),
-                'delivery_method': 'sms' if user_type == 'lecturer' else 'email',
-                'masked_contact': phone_number[-4:] if user_type == 'lecturer' else f"{email.split('@')[0][:2]}***@{email.split('@')[1]}",
-                'debug_code': verification_code.code  # Remove this in production
-            }), 200
+        # Mask contact for response
+        if delivery_method == 'SMS':
+            masked_contact = f"{phone_number[:4]}***{phone_number[-3:]}" if phone_number else None
         else:
-            return jsonify({'error': f'Failed to send verification code: {message}'}), 500
-            
+            email_parts = email.split('@')
+            masked_contact = f"{email_parts[0][:2]}***@{email_parts[1]}"
+        
+        return jsonify({
+            'success': True,
+            'message': f'Verification code sent via {delivery_method}',
+            'verification_id': verification_code.id,
+            'delivery_method': delivery_method,
+            'masked_contact': masked_contact,
+            'debug_code': verification_code.code  # For testing - remove in production
+        }), 200
+        
     except Exception as e:
-        print(f"❌ Error in send_verification_code: {str(e)}")
+        print(f"❌ Send verification error: {str(e)}")
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
 
 @auth_bp.route('/verify-registration', methods=['POST'])
-def verify_registration_code():
+def verify_registration():
     """
     Step 2: Verify code and complete registration
     """
-    print("\n✅ VERIFY REGISTRATION ENDPOINT CALLED")
+    print("\n🔐 VERIFY REGISTRATION ENDPOINT CALLED")
     try:
         data = request.get_json()
         print(f"📥 Received data: {data}")
         
         # Validate required fields
-        required_fields = ['verification_id', 'code', 'password']
+        required_fields = ['verification_id', 'code', 'password', 'first_name', 'last_name']
         for field in required_fields:
             if field not in data:
                 return jsonify({'error': f'Missing required field: {field}'}), 400
         
         verification_id = data['verification_id']
-        provided_code = data['code']
+        entered_code = data['code']
         password = data['password']
+        first_name = data['first_name']
+        last_name = data['last_name']
         
-        # Additional registration data - combine first_name and last_name into full_name
-        first_name = data.get('first_name', '')
-        last_name = data.get('last_name', '')
-        full_name = f"{first_name} {last_name}".strip()
-        matricle_number = data.get('matricle_number')
-        department_id = data.get('department_id')
-        level = data.get('level', '200')  # Default to 200 level
-        gender = data.get('gender', 'Male')  # Default gender
-        
-        print(f"🔍 Looking for verification ID: {verification_id}")
+        print(f"🆔 Verification ID: {verification_id}")
+        print(f"🔢 Entered Code: {entered_code}")
         
         # Find verification code
-        verification_code = VerificationCode.query.get(verification_id)
-        if not verification_code:
-            return jsonify({'error': 'Invalid verification ID'}), 400
+        verification = VerificationCode.query.filter_by(
+            id=verification_id,
+            purpose='registration'
+        ).first()
         
-        print(f"✅ Found verification code: {verification_code.code}")
-        print(f"📝 Provided code: {provided_code}")
+        if not verification:
+            return jsonify({'error': 'Invalid verification session'}), 400
+        
+        # Check if code is expired
+        if verification.is_expired():
+            return jsonify({'error': 'Verification code has expired'}), 400
         
         # Verify the code
-        is_valid, message = verification_code.verify_code(provided_code)
-        if not is_valid:
-            db.session.commit()  # Save attempt count
-            return jsonify({'error': message}), 400
+        if not verification.verify_code(entered_code):
+            return jsonify({'error': 'Invalid verification code'}), 400
         
-        print(f"🎉 Code verification successful!")
+        print(f"✅ Code verified successfully!")
         
         # Validate password
-        validate_password(password)
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            return jsonify({'error': e.message, 'field': e.field}), 400
         
-        # Additional validation for students - be more flexible with matricle number
-        if verification_code.user_type == 'student' and matricle_number:
-            if len(matricle_number) < 5:
-                return jsonify({'error': 'Matricle number too short', 'field': 'matricle_number'}), 400
-        
-        # Check if user was created in the meantime
-        if User.query.filter_by(email=verification_code.email).first():
+        # Check if user already exists (double check)
+        if User.query.filter_by(email=verification.email).first():
             return jsonify({'error': 'Email already registered'}), 409
         
-        # Create user
-        password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
+        # Create user account
         user = User(
-            email=verification_code.email,
-            password_hash=password_hash,
-            user_type=verification_code.user_type,
-            email_verified=True  # Email is verified through this process
+            email=verification.email,
+            password_hash=bcrypt.generate_password_hash(password).decode('utf-8'),
+            first_name=first_name,
+            last_name=last_name,
+            user_type=verification.user_type,
+            is_verified=True,
+            phone_number=verification.phone_number
         )
         
         db.session.add(user)
-        db.session.flush()  # Get user ID before committing
+        db.session.flush()  # Get user ID
         
-        print(f"👤 Created user: {user.email}")
+        print(f"👤 User created: {user.id}")
         
-        # Create user preferences
-        preferences = UserPreference(user_id=user.id)
-        db.session.add(preferences)
-        
-        # Create role-specific profile using the correct field names and constraints
-        if verification_code.user_type == 'student':
-            # Generate a short student ID for matricle_number if not provided
-            if not matricle_number:
-                matricle_number = f"ST{random.randint(10000, 99999)}"
+        # Create role-specific profile
+        if verification.user_type == 'student':
+            matricle_number = data.get('matricle_number')
+            department_id = data.get('department_id')
             
-            # Ensure level is a valid enum value
-            if level not in ['200', '300', '400', '500']:
-                level = '200'  # Default to 200 level
+            # Validate matricle number if provided
+            if matricle_number:
+                try:
+                    validate_ub_matricle_number(matricle_number)
+                except ValidationError as e:
+                    db.session.rollback()
+                    return jsonify({'error': e.message, 'field': e.field}), 400
+                
+                # Check if matricle number already exists
+                if Student.query.filter_by(matricle_number=matricle_number).first():
+                    db.session.rollback()
+                    return jsonify({'error': 'Matricle number already registered'}), 409
             
-            # Get existing FET department if not provided
+            # Use default department if not provided
             if not department_id:
                 department_id = get_default_department()
                 if not department_id:
-                    return jsonify({'error': 'No departments available. Please contact administrator.'}), 500
+                    db.session.rollback()
+                    return jsonify({'error': 'No departments available'}), 500
             
             student = Student(
                 user_id=user.id,
-                full_name=full_name or 'Student User',
                 matricle_number=matricle_number,
                 department_id=department_id,
-                level=level,  # Use string value from enum
-                gender=gender,
-                enrollment_year=datetime.now().year
+                level='200',  # Default level
+                gender='Male'  # Default gender - should be provided in form
             )
             db.session.add(student)
-            print(f"🎓 Created student profile with level {level} and department {department_id}")
+            print(f"🎓 Student profile created")
             
-        elif verification_code.user_type == 'lecturer':
-            # Generate a short lecturer ID (max 20 characters)
-            lecturer_id = f"LEC{random.randint(1000, 9999)}"
-            
+        elif verification.user_type == 'lecturer':
             lecturer = Lecturer(
                 user_id=user.id,
-                lecturer_id=lecturer_id,  # Short ID that fits in 20 chars
-                full_name=full_name or 'Lecturer User',
-                institutional_email=verification_code.email,
-                phone_number=verification_code.phone_number
+                staff_id=f"LEC{user.id:06d}",  # Generate staff ID
+                title='Mr.',  # Default title
+                department_id=get_default_department() or 1
             )
             db.session.add(lecturer)
-            print(f"👨‍🏫 Created lecturer profile with ID {lecturer_id}")
+            print(f"👨‍🏫 Lecturer profile created")
             
-        elif verification_code.user_type == 'admin':
-            # Generate a short admin ID (max 20 characters)
-            admin_id = f"ADM{random.randint(1000, 9999)}"
-            
+        elif verification.user_type == 'admin':
             admin = Admin(
                 user_id=user.id,
-                admin_id=admin_id,  # Short ID that fits in 20 chars
-                full_name=full_name or 'Admin User'
+                admin_id=f"ADM{user.id:06d}",  # Generate admin ID
+                role='system_admin',
+                permissions=['user_management', 'system_settings']
             )
             db.session.add(admin)
-            print(f"👨‍💼 Created admin profile with ID {admin_id}")
+            print(f"👨‍💼 Admin profile created")
         
-        # Mark verification as complete
-        verification_code.is_verified = True
-        verification_code.verified_at = datetime.utcnow()
+        # Create user preferences
+        preferences = UserPreference(
+            user_id=user.id,
+            theme='system',
+            language='en',
+            notifications_enabled=True,
+            email_notifications=True,
+            push_notifications=True
+        )
+        db.session.add(preferences)
         
+        # Mark verification as used
+        verification.is_used = True
+        verification.used_at = datetime.utcnow()
+        
+        # Commit all changes
         db.session.commit()
         
-        print(f"💾 Registration completed successfully!")
+        print(f"🎉 Registration completed successfully!")
+        
+        # Clean up old verification codes
+        VerificationCode.query.filter(
+            VerificationCode.email == verification.email,
+            VerificationCode.id != verification.id
+        ).delete()
+        db.session.commit()
         
         return jsonify({
+            'success': True,
             'message': 'Registration completed successfully',
-            'user': user.to_dict(),
-            'verification_method': 'sms' if verification_code.user_type == 'lecturer' else 'email'
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'user_type': user.user_type
+            }
         }), 201
         
-    except ValidationError as e:
-        return jsonify({'error': e.message, 'field': e.field}), 400
     except Exception as e:
-        print(f"❌ Error in verify_registration_code: {str(e)}")
+        print(f"❌ Verify registration error: {str(e)}")
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
 
 @auth_bp.route('/resend-verification', methods=['POST'])
 def resend_verification_code():
     """
     Resend verification code
     """
+    print("\n🔄 RESEND VERIFICATION ENDPOINT CALLED")
     try:
         data = request.get_json()
+        verification_id = data.get('verification_id')
         
-        if not data.get('verification_id'):
-            return jsonify({'error': 'Verification ID required'}), 400
+        if not verification_id:
+            return jsonify({'error': 'Missing verification_id'}), 400
         
-        verification_id = data['verification_id']
+        # Find verification code
+        verification = VerificationCode.query.filter_by(
+            id=verification_id,
+            purpose='registration'
+        ).first()
         
-        # Find existing verification code
-        verification_code = VerificationCode.query.get(verification_id)
-        if not verification_code:
-            return jsonify({'error': 'Invalid verification ID'}), 400
+        if not verification:
+            return jsonify({'error': 'Invalid verification session'}), 400
         
-        if verification_code.is_verified:
-            return jsonify({'error': 'Code already verified'}), 400
+        if verification.is_used:
+            return jsonify({'error': 'Verification already completed'}), 400
         
-        # Generate new code and reset attempts
-        verification_code.code = verification_code.generate_code()
-        verification_code.attempts = 0
-        verification_code.expires_at = datetime.utcnow() + timedelta(minutes=15)
-        
+        # Generate new code
+        verification.regenerate_code()
         db.session.commit()
         
-        # Send new verification code
-        success, message = NotificationService.send_verification_code(
-            verification_code.email,
-            verification_code.phone_number,
-            verification_code.code,
-            verification_code.user_type
+        print(f"🔄 New code generated: {verification.code}")
+        
+        # Send notification
+        delivery_method = 'SMS' if verification.user_type == 'lecturer' and verification.phone_number else 'Email'
+        contact = verification.phone_number if verification.user_type == 'lecturer' and verification.phone_number else verification.email
+        
+        NotificationService.send_verification_code(
+            code=verification.code,
+            contact=contact,
+            delivery_method=delivery_method
         )
         
-        if success:
-            return jsonify({
-                'message': 'Verification code resent successfully',
-                'expires_at': verification_code.expires_at.isoformat(),
-                'delivery_method': 'sms' if verification_code.user_type == 'lecturer' else 'email',
-                'debug_code': verification_code.code  # Remove this in production
-            }), 200
+        # Mask contact for response
+        if delivery_method == 'SMS':
+            masked_contact = f"{verification.phone_number[:4]}***{verification.phone_number[-3:]}" if verification.phone_number else None
         else:
-            return jsonify({'error': f'Failed to resend verification code: {message}'}), 500
-            
+            email_parts = verification.email.split('@')
+            masked_contact = f"{email_parts[0][:2]}***@{email_parts[1]}"
+        
+        return jsonify({
+            'success': True,
+            'message': f'Verification code resent via {delivery_method}',
+            'delivery_method': delivery_method,
+            'masked_contact': masked_contact,
+            'debug_code': verification.code  # For testing - remove in production
+        }), 200
+        
     except Exception as e:
+        print(f"❌ Resend verification error: {str(e)}")
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
-
-# Keep all your existing auth routes below - these are the original ones
-@auth_bp.route('/register', methods=['POST'])
-def register():
-    """
-    Original registration endpoint - now redirects to 2FA flow
-    """
-    try:
-        data = request.get_json()
-        
-        # Check if this is a direct registration attempt
-        if not data.get('verification_id'):
-            return jsonify({
-                'error': 'Registration now requires verification. Please use /send-verification first.',
-                'next_step': 'Call /api/auth/send-verification to start registration process',
-                'required_fields': ['email', 'user_type', 'phone_number (for lecturers)'],
-                'new_flow': {
-                    'step_1': '/api/auth/send-verification',
-                    'step_2': '/api/auth/verify-registration'
-                }
-            }), 400
-        
-        # If verification_id is provided, redirect to verify-registration
-        return verify_registration_code()
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
+    """
+    User login endpoint
+    """
+    print("\n🔐 LOGIN ENDPOINT CALLED")
     try:
         data = request.get_json()
+        print(f"📥 Login data: {data}")
         
-        if not data.get('email') or not data.get('password'):
-            return jsonify({'error': 'Email and password required'}), 400
+        # Validate required fields
+        required_fields = ['email', 'password', 'user_type']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
         
-        # Find user (case-insensitive email search)
-        user = User.query.filter_by(email=data['email'].lower()).first()
+        email = data['email'].lower()
+        password = data['password']
+        user_type = data['user_type']
         
-        if not user or not bcrypt.check_password_hash(user.password_hash, data['password']):
+        print(f"📧 Email: {email}")
+        print(f"👤 User Type: {user_type}")
+        
+        # Find user
+        user = User.query.filter_by(email=email, user_type=user_type).first()
+        
+        if not user:
             return jsonify({'error': 'Invalid credentials'}), 401
         
-        if not user.is_active:
-            return jsonify({'error': 'Account is deactivated'}), 401
+        # Check password
+        if not bcrypt.check_password_hash(user.password_hash, password):
+            return jsonify({'error': 'Invalid credentials'}), 401
         
-        if not user.email_verified:
-            return jsonify({'error': 'Email not verified. Please complete registration.'}), 401
+        # Check if user is verified
+        if not user.is_verified:
+            return jsonify({'error': 'Account not verified'}), 401
+        
+        print(f"✅ User authenticated: {user.id}")
+        
+        # Create access token
+        access_token = create_access_token(
+            identity=user.id,
+            expires_delta=timedelta(days=7)
+        )
+        
+        # Create user session
+        session = UserSession(
+            user_id=user.id,
+            session_token=str(uuid.uuid4()),
+            device_info=request.headers.get('User-Agent', 'Unknown'),
+            ip_address=request.remote_addr,
+            expires_at=datetime.utcnow() + timedelta(days=7)
+        )
+        db.session.add(session)
         
         # Update last login
         user.last_login = datetime.utcnow()
         
-        # Create access token
-        access_token = create_access_token(
-            identity=str(user.id),
-            expires_delta=timedelta(days=7)
-        )
-        
-        # Create user session record
-        session_token = secrets.token_urlsafe(32)
-        user_session = UserSession(
-            user_id=user.id,
-            session_token=session_token,
-            device_info=data.get('device_info', {}),
-            ip_address=request.remote_addr,
-            user_agent=request.headers.get('User-Agent'),
-            expires_at=datetime.utcnow() + timedelta(days=7),
-            is_active=True
-        )
-        
-        db.session.add(user_session)
         db.session.commit()
         
-        # Get user profile based on type
+        # Get role-specific profile
         profile = None
         if user.user_type == 'student':
-            profile = Student.query.filter_by(user_id=user.id).first()
+            student = Student.query.filter_by(user_id=user.id).first()
+            if student:
+                profile = {
+                    'matricle_number': student.matricle_number,
+                    'department_id': student.department_id,
+                    'level': student.level,
+                    'gender': student.gender
+                }
         elif user.user_type == 'lecturer':
-            profile = Lecturer.query.filter_by(user_id=user.id).first()
+            lecturer = Lecturer.query.filter_by(user_id=user.id).first()
+            if lecturer:
+                profile = {
+                    'staff_id': lecturer.staff_id,
+                    'title': lecturer.title,
+                    'department_id': lecturer.department_id
+                }
         elif user.user_type == 'admin':
-            profile = Admin.query.filter_by(user_id=user.id).first()
+            admin = Admin.query.filter_by(user_id=user.id).first()
+            if admin:
+                profile = {
+                    'admin_id': admin.admin_id,
+                    'role': admin.role,
+                    'permissions': admin.permissions
+                }
+        
+        print(f"🎉 Login successful!")
         
         return jsonify({
+            'success': True,
+            'message': 'Login successful',
             'access_token': access_token,
-            'session_token': session_token,
-            'user': user.to_dict(),
-            'profile': profile.to_dict() if profile else None
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'user_type': user.user_type,
+                'profile': profile
+            }
         }), 200
         
     except Exception as e:
+        print(f"❌ Login error: {str(e)}")
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
+
+@auth_bp.route('/logout', methods=['POST'])
+@jwt_required()
+def logout():
+    """
+    User logout endpoint
+    """
+    print("\n🚪 LOGOUT ENDPOINT CALLED")
+    try:
+        user_id = get_jwt_identity()
+        jti = get_jwt()['jti']
+        
+        # Find and deactivate user session
+        session = UserSession.query.filter_by(user_id=user_id, is_active=True).first()
+        if session:
+            session.is_active = False
+            session.ended_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        print(f"✅ User {user_id} logged out successfully")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Logged out successfully'
+        }), 200
+        
+    except Exception as e:
+        print(f"❌ Logout error: {str(e)}")
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
 
 @auth_bp.route('/me', methods=['GET'])
 @jwt_required()
 def get_current_user():
+    """
+    Get current user information
+    """
     try:
         user_id = get_jwt_identity()
         user = User.query.get(user_id)
@@ -425,88 +511,98 @@ def get_current_user():
         if not user:
             return jsonify({'error': 'User not found'}), 404
         
-        # Check if user has an active session
-        session_token = request.headers.get('X-Session-Token')
-        if session_token:
-            user_session = UserSession.query.filter_by(
-                user_id=user.id,
-                session_token=session_token,
-                is_active=True
-            ).first()
-            
-            if user_session and user_session.expires_at > datetime.utcnow():
-                # Update last activity
-                user_session.last_activity = datetime.utcnow()
-                db.session.commit()
-            elif user_session:
-                # Session expired, deactivate it
-                user_session.is_active = False
-                db.session.commit()
-                return jsonify({'error': 'Session expired'}), 401
-        
-        # Get user profile based on type
+        # Get role-specific profile
         profile = None
         if user.user_type == 'student':
-            profile = Student.query.filter_by(user_id=user.id).first()
+            student = Student.query.filter_by(user_id=user.id).first()
+            if student:
+                profile = {
+                    'matricle_number': student.matricle_number,
+                    'department_id': student.department_id,
+                    'level': student.level,
+                    'gender': student.gender
+                }
         elif user.user_type == 'lecturer':
-            profile = Lecturer.query.filter_by(user_id=user.id).first()
+            lecturer = Lecturer.query.filter_by(user_id=user.id).first()
+            if lecturer:
+                profile = {
+                    'staff_id': lecturer.staff_id,
+                    'title': lecturer.title,
+                    'department_id': lecturer.department_id
+                }
         elif user.user_type == 'admin':
-            profile = Admin.query.filter_by(user_id=user.id).first()
+            admin = Admin.query.filter_by(user_id=user.id).first()
+            if admin:
+                profile = {
+                    'admin_id': admin.admin_id,
+                    'role': admin.role,
+                    'permissions': admin.permissions
+                }
         
         return jsonify({
-            'user': user.to_dict(),
-            'profile': profile.to_dict() if profile else None
+            'success': True,
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'user_type': user.user_type,
+                'is_verified': user.is_verified,
+                'created_at': user.created_at.isoformat(),
+                'last_login': user.last_login.isoformat() if user.last_login else None,
+                'profile': profile
+            }
         }), 200
         
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"❌ Get current user error: {str(e)}")
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
 
-@auth_bp.route('/logout', methods=['POST'])
-@jwt_required()
-def logout():
+@auth_bp.route('/validate-email', methods=['POST'])
+def validate_email():
+    """
+    Validate email format for specific user type
+    """
     try:
-        user_id = get_jwt_identity()
+        data = request.get_json()
+        email = data.get('email', '').lower()
+        user_type = data.get('user_type')
         
-        # Get session token from header or request body
-        session_token = request.headers.get('X-Session-Token')
-        if not session_token:
-            data = request.get_json() or {}
-            session_token = data.get('session_token')
+        if not email or not user_type:
+            return jsonify({'error': 'Email and user_type required'}), 400
         
-        if session_token:
-            # Find and deactivate the specific session
-            user_session = UserSession.query.filter_by(
-                user_id=user_id,
-                session_token=session_token,
-                is_active=True
-            ).first()
+        try:
+            validate_email_by_user_type(email, user_type)
+            return jsonify({
+                'success': True,
+                'message': f'Email format valid for {user_type}'
+            }), 200
+        except ValidationError as e:
+            return jsonify({'error': e.message, 'field': e.field}), 400
             
-            if user_session:
-                user_session.is_active = False
-                user_session.last_activity = datetime.utcnow()
-                db.session.commit()
-                
-                return jsonify({
-                    'message': 'Logged out successfully',
-                    'session_invalidated': True
-                }), 200
-        
-        # If no session token provided, deactivate all user sessions
-        UserSession.query.filter_by(
-            user_id=user_id,
-            is_active=True
-        ).update({
-            'is_active': False,
-            'last_activity': datetime.utcnow()
-        })
-        
-        db.session.commit()
-        
-        return jsonify({
-            'message': 'All sessions logged out successfully',
-            'sessions_invalidated': True
-        }), 200
-        
     except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
+
+@auth_bp.route('/validate-matricle', methods=['POST'])
+def validate_matricle():
+    """
+    Validate UB matricle number format
+    """
+    try:
+        data = request.get_json()
+        matricle_number = data.get('matricle_number', '').upper()
+        
+        if not matricle_number:
+            return jsonify({'error': 'Matricle number required'}), 400
+        
+        try:
+            validate_ub_matricle_number(matricle_number)
+            return jsonify({
+                'success': True,
+                'message': 'Matricle number format is valid'
+            }), 200
+        except ValidationError as e:
+            return jsonify({'error': e.message, 'field': e.field}), 400
+            
+    except Exception as e:
+        return jsonify({'error': f'Server error: {str(e)}'}), 500

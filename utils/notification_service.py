@@ -1,75 +1,286 @@
 import smtplib
-import os
+import requests
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
-import logging
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+import os
 
 class NotificationService:
-    """Service for sending email and SMS notifications"""
+    """
+    Service for sending notifications via email and SMS
+    Since we're using fake emails/phones, we'll simulate the sending
+    """
     
     @staticmethod
-    def send_verification_code(email, phone_number, code, user_type):
+    def send_verification_code(code, contact, delivery_method='Email'):
         """
         Send verification code via email or SMS
-        For testing purposes, we'll just display the code in the console
+        For testing purposes, we'll just log the code
         """
+        print(f"\n📨 SENDING VERIFICATION CODE")
+        print(f"🔢 Code: {code}")
+        print(f"📧 Contact: {contact}")
+        print(f"📱 Method: {delivery_method}")
+        print(f"⏰ Time: {datetime.now()}")
         
-        # Display the verification code prominently in the console
-        print("\n" + "🎯" * 50)
-        print("🔑 VERIFICATION CODE GENERATED 🔑")
-        print("🎯" * 50)
+        try:
+            if delivery_method == 'Email':
+                return NotificationService._send_email_notification(code, contact)
+            elif delivery_method == 'SMS':
+                return NotificationService._send_sms_notification(code, contact)
+            else:
+                print(f"❌ Unknown delivery method: {delivery_method}")
+                return False
+        except Exception as e:
+            print(f"❌ Notification sending failed: {str(e)}")
+            return False
+    
+    @staticmethod
+    def _send_email_notification(code, email):
+        """
+        Simulate sending email notification
+        In production, this would use a real email service
+        """
+        print(f"📧 Simulating email to: {email}")
+        print(f"📝 Email Subject: AttendEase - Verification Code")
+        print(f"📄 Email Body:")
+        print(f"   Your AttendEase verification code is: {code}")
+        print(f"   This code will expire in 10 minutes.")
+        print(f"   If you didn't request this code, please ignore this email.")
+        print(f"✅ Email simulation completed")
+        return True
+    
+    @staticmethod
+    def _send_sms_notification(code, phone):
+        """
+        Simulate sending SMS notification
+        In production, this would use a real SMS service like Twilio
+        """
+        print(f"📱 Simulating SMS to: {phone}")
+        print(f"💬 SMS Message:")
+        print(f"   AttendEase verification code: {code}")
+        print(f"   Expires in 10 minutes.")
+        print(f"✅ SMS simulation completed")
+        return True
+    
+    @staticmethod
+    def send_attendance_notification(student_email, course_name, session_id):
+        """
+        Send attendance session notification to student
+        """
+        print(f"\n🎓 SENDING ATTENDANCE NOTIFICATION")
+        print(f"👤 Student: {student_email}")
+        print(f"📚 Course: {course_name}")
+        print(f"🆔 Session: {session_id}")
+        print(f"📝 Message: New attendance session started for {course_name}")
+        print(f"✅ Attendance notification sent")
+        return True
+    
+    @staticmethod
+    def send_welcome_notification(user_email, user_name, user_type):
+        """
+        Send welcome notification after successful registration
+        """
+        print(f"\n🎉 SENDING WELCOME NOTIFICATION")
+        print(f"👤 User: {user_name} ({user_email})")
+        print(f"🏷️ Type: {user_type}")
+        print(f"📝 Message: Welcome to AttendEase! Your account has been created successfully.")
+        print(f"✅ Welcome notification sent")
+        return True
+    
+    @staticmethod
+    def send_password_reset_code(email, code):
+        """
+        Send password reset code
+        """
+        print(f"\n🔐 SENDING PASSWORD RESET CODE")
         print(f"📧 Email: {email}")
-        print(f"👤 User Type: {user_type}")
-        print(f"🔢 CODE: {code}")
-        print(f"📱 Phone: {phone_number if phone_number else 'N/A'}")
-        print(f"📤 Delivery Method: {'SMS' if user_type == 'lecturer' else 'Email'}")
-        print("🎯" * 50)
-        print(f"🚨 COPY THIS CODE: {code} 🚨")
-        print("🎯" * 50 + "\n")
-        
-        # In a real implementation, you would:
-        # 1. Send email for students/admins
-        # 2. Send SMS for lecturers
-        # 3. Use services like SendGrid, Twilio, etc.
-        
-        if user_type == 'lecturer' and phone_number:
-            # Simulate SMS sending
-            print(f"📱 [SIMULATED SMS] Sending to {phone_number}: Your AttendEase verification code is {code}")
-            return True, f"SMS sent to {phone_number}"
-        else:
-            # Simulate email sending
-            print(f"📧 [SIMULATED EMAIL] Sending to {email}: Your AttendEase verification code is {code}")
-            return True, f"Email sent to {email}"
+        print(f"🔢 Code: {code}")
+        print(f"📝 Message: Your password reset code is: {code}")
+        print(f"✅ Password reset notification sent")
+        return True
     
     @staticmethod
-    def send_email(to_email, subject, body, html_body=None):
+    def send_system_notification(user_email, title, message):
         """
-        Send email using SMTP (for future implementation)
+        Send general system notification
         """
-        try:
-            # This would be implemented with actual SMTP settings
-            # For now, just simulate
-            print(f"📧 [EMAIL SIMULATION] To: {to_email}, Subject: {subject}")
-            print(f"📝 Body: {body}")
-            return True, "Email sent successfully"
-        except Exception as e:
-            return False, str(e)
+        print(f"\n🔔 SENDING SYSTEM NOTIFICATION")
+        print(f"👤 User: {user_email}")
+        print(f"📋 Title: {title}")
+        print(f"📝 Message: {message}")
+        print(f"✅ System notification sent")
+        return True
     
     @staticmethod
-    def send_sms(phone_number, message):
+    def send_bulk_notification(emails, title, message):
         """
-        Send SMS using SMS service (for future implementation)
+        Send notification to multiple users
         """
+        print(f"\n📢 SENDING BULK NOTIFICATION")
+        print(f"👥 Recipients: {len(emails)} users")
+        print(f"📋 Title: {title}")
+        print(f"📝 Message: {message}")
+        
+        for email in emails:
+            print(f"   📧 Sending to: {email}")
+        
+        print(f"✅ Bulk notification sent to {len(emails)} users")
+        return True
+    
+    @staticmethod
+    def log_notification(notification_type, recipient, content, status='sent'):
+        """
+        Log notification for audit purposes
+        """
+        print(f"\n📊 LOGGING NOTIFICATION")
+        print(f"🏷️ Type: {notification_type}")
+        print(f"👤 Recipient: {recipient}")
+        print(f"📝 Content: {content}")
+        print(f"✅ Status: {status}")
+        print(f"⏰ Time: {datetime.now()}")
+        print(f"📋 Notification logged")
+        return True
+import smtplib
+import requests
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from datetime import datetime
+import os
+
+class NotificationService:
+    """
+    Service for sending notifications via email and SMS
+    Since we're using fake emails/phones, we'll simulate the sending
+    """
+    
+    @staticmethod
+    def send_verification_code(code, contact, delivery_method='Email'):
+        """
+        Send verification code via email or SMS
+        For testing purposes, we'll just log the code
+        """
+        print(f"\n📨 SENDING VERIFICATION CODE")
+        print(f"🔢 Code: {code}")
+        print(f"📧 Contact: {contact}")
+        print(f"📱 Method: {delivery_method}")
+        print(f"⏰ Time: {datetime.now()}")
+        
         try:
-            # This would be implemented with Twilio or similar service
-            # For now, just simulate
-            print(f"📱 [SMS SIMULATION] To: {phone_number}")
-            print(f"📝 Message: {message}")
-            return True, "SMS sent successfully"
+            if delivery_method == 'Email':
+                return NotificationService._send_email_notification(code, contact)
+            elif delivery_method == 'SMS':
+                return NotificationService._send_sms_notification(code, contact)
+            else:
+                print(f"❌ Unknown delivery method: {delivery_method}")
+                return False
         except Exception as e:
-            return False, str(e)
+            print(f"❌ Notification sending failed: {str(e)}")
+            return False
+    
+    @staticmethod
+    def _send_email_notification(code, email):
+        """
+        Simulate sending email notification
+        In production, this would use a real email service
+        """
+        print(f"📧 Simulating email to: {email}")
+        print(f"📝 Email Subject: AttendEase - Verification Code")
+        print(f"📄 Email Body:")
+        print(f"   Your AttendEase verification code is: {code}")
+        print(f"   This code will expire in 10 minutes.")
+        print(f"   If you didn't request this code, please ignore this email.")
+        print(f"✅ Email simulation completed")
+        return True
+    
+    @staticmethod
+    def _send_sms_notification(code, phone):
+        """
+        Simulate sending SMS notification
+        In production, this would use a real SMS service like Twilio
+        """
+        print(f"📱 Simulating SMS to: {phone}")
+        print(f"💬 SMS Message:")
+        print(f"   AttendEase verification code: {code}")
+        print(f"   Expires in 10 minutes.")
+        print(f"✅ SMS simulation completed")
+        return True
+    
+    @staticmethod
+    def send_attendance_notification(student_email, course_name, session_id):
+        """
+        Send attendance session notification to student
+        """
+        print(f"\n🎓 SENDING ATTENDANCE NOTIFICATION")
+        print(f"👤 Student: {student_email}")
+        print(f"📚 Course: {course_name}")
+        print(f"🆔 Session: {session_id}")
+        print(f"📝 Message: New attendance session started for {course_name}")
+        print(f"✅ Attendance notification sent")
+        return True
+    
+    @staticmethod
+    def send_welcome_notification(user_email, user_name, user_type):
+        """
+        Send welcome notification after successful registration
+        """
+        print(f"\n🎉 SENDING WELCOME NOTIFICATION")
+        print(f"👤 User: {user_name} ({user_email})")
+        print(f"🏷️ Type: {user_type}")
+        print(f"📝 Message: Welcome to AttendEase! Your account has been created successfully.")
+        print(f"✅ Welcome notification sent")
+        return True
+    
+    @staticmethod
+    def send_password_reset_code(email, code):
+        """
+        Send password reset code
+        """
+        print(f"\n🔐 SENDING PASSWORD RESET CODE")
+        print(f"📧 Email: {email}")
+        print(f"🔢 Code: {code}")
+        print(f"📝 Message: Your password reset code is: {code}")
+        print(f"✅ Password reset notification sent")
+        return True
+    
+    @staticmethod
+    def send_system_notification(user_email, title, message):
+        """
+        Send general system notification
+        """
+        print(f"\n🔔 SENDING SYSTEM NOTIFICATION")
+        print(f"👤 User: {user_email}")
+        print(f"📋 Title: {title}")
+        print(f"📝 Message: {message}")
+        print(f"✅ System notification sent")
+        return True
+    
+    @staticmethod
+    def send_bulk_notification(emails, title, message):
+        """
+        Send notification to multiple users
+        """
+        print(f"\n📢 SENDING BULK NOTIFICATION")
+        print(f"👥 Recipients: {len(emails)} users")
+        print(f"📋 Title: {title}")
+        print(f"📝 Message: {message}")
+        
+        for email in emails:
+            print(f"   📧 Sending to: {email}")
+        
+        print(f"✅ Bulk notification sent to {len(emails)} users")
+        return True
+    
+    @staticmethod
+    def log_notification(notification_type, recipient, content, status='sent'):
+        """
+        Log notification for audit purposes
+        """
+        print(f"\n📊 LOGGING NOTIFICATION")
+        print(f"🏷️ Type: {notification_type}")
+        print(f"👤 Recipient: {recipient}")
+        print(f"📝 Content: {content}")
+        print(f"✅ Status: {status}")
+        print(f"⏰ Time: {datetime.now()}")
+        print(f"📋 Notification logged")
+        return True
