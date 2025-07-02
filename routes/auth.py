@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
 from werkzeug.security import check_password_hash, generate_password_hash
 from app import db, bcrypt
@@ -10,20 +10,42 @@ from models.department import Department
 from models.user_preference import UserPreference
 from models.user_session import UserSession
 from models.verification_code import VerificationCode
-from utils.validators import validate_email_format, validate_password, ValidationError
+from utils.validators import validate_email_format, validate_password, ValidationError, validate_email, validate_phone
 from utils.ub_validators import validate_email_by_user_type, validate_ub_matricle_number
 from utils.notification_service import NotificationService
 from datetime import datetime, timedelta
 import uuid
 import secrets
 import random
+import jwt
+from functools import wraps
 
 auth_bp = Blueprint('auth', __name__)
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.headers.get('Authorization')
+        if not token:
+            return jsonify({'error': 'Token is missing'}), 401
+        
+        try:
+            if token.startswith('Bearer '):
+                token = token[7:]
+            data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
+            current_user_id = data['user_id']
+        except jwt.ExpiredSignatureError:
+            return jsonify({'error': 'Token has expired'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'error': 'Token is invalid'}), 401
+        
+        return f(current_user_id, *args, **kwargs)
+    
+    return decorated
 
 def get_default_department():
     """Get the first available department for students"""
     try:
-        # Get the first department from the existing FET departments
         department = Department.query.first()
         if department:
             print(f"🏫 Using existing department: {department.name} (ID: {department.id})")
@@ -37,9 +59,7 @@ def get_default_department():
 
 @auth_bp.route('/send-verification', methods=['POST'])
 def send_verification_code():
-    """
-    Step 1: Send verification code for registration
-    """
+    """Step 1: Send verification code for registration"""
     print("\n🚀 SEND VERIFICATION ENDPOINT CALLED")
     try:
         data = request.get_json()
@@ -129,11 +149,95 @@ def send_verification_code():
         db.session.rollback()
         return jsonify({'error': f'Server error: {str(e)}'}), 500
 
+@auth_bp.route('/register', methods=['POST'])
+def register():
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['email', 'password', 'user_type', 'first_name', 'last_name']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({'error': f'{field} is required'}), 400
+        
+        email = data['email'].lower().strip()
+        password = data['password']
+        user_type = data['user_type'].lower()
+        first_name = data['first_name'].strip()
+        last_name = data['last_name'].strip()
+        phone_number = data.get('phone_number', '').strip()
+        
+        # Validate input
+        if not validate_email(email):
+            return jsonify({'error': 'Invalid email format'}), 400
+        
+        if not validate_password(password):
+            return jsonify({'error': 'Password must be at least 8 characters long'}), 400
+        
+        if user_type not in ['student', 'lecturer', 'admin']:
+            return jsonify({'error': 'Invalid user type'}), 400
+        
+        if phone_number and not validate_phone(phone_number):
+            return jsonify({'error': 'Invalid phone number format'}), 400
+        
+        # Check if user already exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            return jsonify({'error': 'User with this email already exists'}), 409
+        
+        # Create verification code
+        verification_code = VerificationCode.query.filter_by(
+            email=email,
+            purpose='registration',
+            is_used=False
+        ).filter(VerificationCode.expires_at > datetime.utcnow()).first()
+        
+        if not verification_code:
+            verification_code = VerificationCode(
+                email=email,
+                user_type=user_type,
+                phone_number=phone_number,
+                purpose='registration'
+            )
+            db.session.add(verification_code)
+            db.session.commit()
+        
+        # Send verification email
+        notification_service = NotificationService()
+        email_sent = notification_service.send_verification_email(
+            email=email,
+            code=verification_code.code,
+            user_name=f"{first_name} {last_name}"
+        )
+        
+        if not email_sent:
+            return jsonify({'error': 'Failed to send verification email'}), 500
+        
+        # Store user data temporarily (you might want to use Redis or similar)
+        # For now, we'll store it in the session or return it to be sent back
+        user_data = {
+            'email': email,
+            'password_hash': generate_password_hash(password),
+            'user_type': user_type,
+            'first_name': first_name,
+            'last_name': last_name,
+            'phone_number': phone_number
+        }
+        
+        return jsonify({
+            'message': 'Verification code sent to your email',
+            'email': email,
+            'verification_id': str(verification_code.id)
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Registration error: {str(e)}")
+        return jsonify({'error': 'Registration failed'}), 500
+
 @auth_bp.route('/verify-registration', methods=['POST'])
 def verify_registration():
-    """
-    Step 2: Verify code and complete registration
-    """
+    """Step 2: Verify code and complete registration"""
     print("\n🔐 VERIFY REGISTRATION ENDPOINT CALLED")
     try:
         data = request.get_json()
@@ -169,7 +273,11 @@ def verify_registration():
         
         # Verify the code
         if not verification.verify_code(entered_code):
-            return jsonify({'error': 'Invalid verification code'}), 400
+            attempts_left = (verification.max_attempts or 5) - (verification.attempts or 0)
+            return jsonify({
+                'error': 'Invalid verification code',
+                'attempts_left': max(0, attempts_left)
+            }), 400
         
         print(f"✅ Code verified successfully!")
         
@@ -265,9 +373,8 @@ def verify_registration():
         )
         db.session.add(preferences)
         
-        # Mark verification as used
-        verification.is_used = True
-        verification.used_at = datetime.utcnow()
+        # Mark verification as used - use the new method that updates both columns
+        verification.mark_as_used()
         
         # Commit all changes
         db.session.commit()
@@ -285,7 +392,7 @@ def verify_registration():
             'success': True,
             'message': 'Registration completed successfully',
             'user': {
-                'id': user.id,
+                'id': str(user.id),
                 'email': user.email,
                 'first_name': user.first_name,
                 'last_name': user.last_name,
@@ -300,9 +407,7 @@ def verify_registration():
 
 @auth_bp.route('/resend-verification', methods=['POST'])
 def resend_verification_code():
-    """
-    Resend verification code
-    """
+    """Resend verification code"""
     print("\n🔄 RESEND VERIFICATION ENDPOINT CALLED")
     try:
         data = request.get_json()
@@ -361,208 +466,103 @@ def resend_verification_code():
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    """
-    User login endpoint
-    """
+    """User login endpoint"""
     print("\n🔐 LOGIN ENDPOINT CALLED")
     try:
         data = request.get_json()
         print(f"📥 Login data: {data}")
         
-        # Validate required fields
-        required_fields = ['email', 'password', 'user_type']
-        for field in required_fields:
-            if field not in data:
-                return jsonify({'error': f'Missing required field: {field}'}), 400
+        if not data.get('email') or not data.get('password'):
+            return jsonify({'error': 'Email and password are required'}), 400
         
-        email = data['email'].lower()
+        email = data['email'].lower().strip()
         password = data['password']
-        user_type = data['user_type']
-        
-        print(f"📧 Email: {email}")
-        print(f"👤 User Type: {user_type}")
         
         # Find user
-        user = User.query.filter_by(email=email, user_type=user_type).first()
+        user = User.query.filter_by(email=email).first()
         
-        if not user:
-            return jsonify({'error': 'Invalid credentials'}), 401
+        if not user or not check_password_hash(user.password_hash, password):
+            return jsonify({'error': 'Invalid email or password'}), 401
         
-        # Check password
-        if not bcrypt.check_password_hash(user.password_hash, password):
-            return jsonify({'error': 'Invalid credentials'}), 401
+        if not user.is_active:
+            return jsonify({'error': 'Account is deactivated'}), 401
         
-        # Check if user is verified
         if not user.is_verified:
-            return jsonify({'error': 'Account not verified'}), 401
+            return jsonify({'error': 'Please verify your email first'}), 401
         
         print(f"✅ User authenticated: {user.id}")
         
-        # Create access token
-        access_token = create_access_token(
-            identity=user.id,
-            expires_delta=timedelta(days=7)
-        )
-        
-        # Create user session
-        session = UserSession(
-            user_id=user.id,
-            session_token=str(uuid.uuid4()),
-            device_info=request.headers.get('User-Agent', 'Unknown'),
-            ip_address=request.remote_addr,
-            expires_at=datetime.utcnow() + timedelta(days=7)
-        )
-        db.session.add(session)
+        # Generate JWT token
+        token = jwt.encode({
+            'user_id': str(user.id),
+            'email': user.email,
+            'user_type': user.user_type,
+            'exp': datetime.utcnow() + timedelta(days=30)
+        }, current_app.config['SECRET_KEY'], algorithm='HS256')
         
         # Update last login
         user.last_login = datetime.utcnow()
-        
         db.session.commit()
         
-        # Get role-specific profile
-        profile = None
-        if user.user_type == 'student':
-            student = Student.query.filter_by(user_id=user.id).first()
-            if student:
-                profile = {
-                    'matricle_number': student.matricle_number,
-                    'department_id': student.department_id,
-                    'level': student.level,
-                    'gender': student.gender
-                }
-        elif user.user_type == 'lecturer':
-            lecturer = Lecturer.query.filter_by(user_id=user.id).first()
-            if lecturer:
-                profile = {
-                    'staff_id': lecturer.staff_id,
-                    'title': lecturer.title,
-                    'department_id': lecturer.department_id
-                }
-        elif user.user_type == 'admin':
-            admin = Admin.query.filter_by(user_id=user.id).first()
-            if admin:
-                profile = {
-                    'admin_id': admin.admin_id,
-                    'role': admin.role,
-                    'permissions': admin.permissions
-                }
-        
-        print(f"🎉 Login successful!")
-        
         return jsonify({
-            'success': True,
             'message': 'Login successful',
-            'access_token': access_token,
+            'token': token,
             'user': {
-                'id': user.id,
+                'id': str(user.id),
                 'email': user.email,
+                'user_type': user.user_type,
                 'first_name': user.first_name,
                 'last_name': user.last_name,
-                'user_type': user.user_type,
-                'profile': profile
+                'phone_number': user.phone_number
             }
         }), 200
         
     except Exception as e:
-        print(f"❌ Login error: {str(e)}")
-        db.session.rollback()
-        return jsonify({'error': f'Server error: {str(e)}'}), 500
+        current_app.logger.error(f"Login error: {str(e)}")
+        return jsonify({'error': 'Login failed'}), 500
 
 @auth_bp.route('/logout', methods=['POST'])
-@jwt_required()
-def logout():
-    """
-    User logout endpoint
-    """
-    print("\n🚪 LOGOUT ENDPOINT CALLED")
+@token_required
+def logout(current_user_id):
     try:
-        user_id = get_jwt_identity()
-        jti = get_jwt()['jti']
-        
-        # Find and deactivate user session
-        session = UserSession.query.filter_by(user_id=user_id, is_active=True).first()
-        if session:
-            session.is_active = False
-            session.ended_at = datetime.utcnow()
-        
-        db.session.commit()
-        
-        print(f"✅ User {user_id} logged out successfully")
-        
-        return jsonify({
-            'success': True,
-            'message': 'Logged out successfully'
-        }), 200
+        # In a more sophisticated setup, you'd invalidate the token
+        # For now, we'll just return success
+        return jsonify({'message': 'Logout successful'}), 200
         
     except Exception as e:
-        print(f"❌ Logout error: {str(e)}")
-        return jsonify({'error': f'Server error: {str(e)}'}), 500
+        current_app.logger.error(f"Logout error: {str(e)}")
+        return jsonify({'error': 'Logout failed'}), 500
 
-@auth_bp.route('/me', methods=['GET'])
-@jwt_required()
-def get_current_user():
-    """
-    Get current user information
-    """
+@auth_bp.route('/profile', methods=['GET'])
+@token_required
+def get_profile(current_user_id):
     try:
-        user_id = get_jwt_identity()
-        user = User.query.get(user_id)
-        
+        user = User.query.get(current_user_id)
         if not user:
             return jsonify({'error': 'User not found'}), 404
         
-        # Get role-specific profile
-        profile = None
-        if user.user_type == 'student':
-            student = Student.query.filter_by(user_id=user.id).first()
-            if student:
-                profile = {
-                    'matricle_number': student.matricle_number,
-                    'department_id': student.department_id,
-                    'level': student.level,
-                    'gender': student.gender
-                }
-        elif user.user_type == 'lecturer':
-            lecturer = Lecturer.query.filter_by(user_id=user.id).first()
-            if lecturer:
-                profile = {
-                    'staff_id': lecturer.staff_id,
-                    'title': lecturer.title,
-                    'department_id': lecturer.department_id
-                }
-        elif user.user_type == 'admin':
-            admin = Admin.query.filter_by(user_id=user.id).first()
-            if admin:
-                profile = {
-                    'admin_id': admin.admin_id,
-                    'role': admin.role,
-                    'permissions': admin.permissions
-                }
-        
         return jsonify({
-            'success': True,
             'user': {
-                'id': user.id,
+                'id': str(user.id),
                 'email': user.email,
+                'user_type': user.user_type,
                 'first_name': user.first_name,
                 'last_name': user.last_name,
-                'user_type': user.user_type,
+                'phone_number': user.phone_number,
                 'is_verified': user.is_verified,
-                'created_at': user.created_at.isoformat(),
-                'last_login': user.last_login.isoformat() if user.last_login else None,
-                'profile': profile
+                'is_active': user.is_active,
+                'created_at': user.created_at.isoformat() if user.created_at else None,
+                'last_login': user.last_login.isoformat() if user.last_login else None
             }
         }), 200
         
     except Exception as e:
-        print(f"❌ Get current user error: {str(e)}")
-        return jsonify({'error': f'Server error: {str(e)}'}), 500
+        current_app.logger.error(f"Get profile error: {str(e)}")
+        return jsonify({'error': 'Failed to get profile'}), 500
 
 @auth_bp.route('/validate-email', methods=['POST'])
 def validate_email():
-    """
-    Validate email format for specific user type
-    """
+    """Validate email format for specific user type"""
     try:
         data = request.get_json()
         email = data.get('email', '').lower()
@@ -585,9 +585,7 @@ def validate_email():
 
 @auth_bp.route('/validate-matricle', methods=['POST'])
 def validate_matricle():
-    """
-    Validate UB matricle number format
-    """
+    """Validate UB matricle number format"""
     try:
         data = request.get_json()
         matricle_number = data.get('matricle_number', '').upper()

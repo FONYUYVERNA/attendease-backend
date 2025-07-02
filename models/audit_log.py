@@ -6,14 +6,15 @@ import uuid
 class AuditLog(db.Model):
     __tablename__ = 'audit_logs'
     
-    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.id'))
     action = db.Column(db.String(100), nullable=False)
     table_name = db.Column(db.String(100))
     record_id = db.Column(UUID(as_uuid=True))
     old_values = db.Column(JSONB)
     new_values = db.Column(JSONB)
-    ip_address = db.Column(db.String(45))
+    # Changed from String(45) to Text to match production
+    ip_address = db.Column(db.Text)
     user_agent = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     

@@ -1,0 +1,179 @@
+{
+  "timestamp": "2025-07-02T06:19:56.413469",
+  "local_tables": [
+    "academic_years",
+    "admins",
+    "attendance_overrides",
+    "attendance_records",
+    "attendance_sessions",
+    "audit_logs",
+    "course_assignments",
+    "courses",
+    "departments",
+    "geofence_areas",
+    "lecturers",
+    "notifications",
+    "semesters",
+    "student_enrollments",
+    "students",
+    "system_settings",
+    "two_factor_auth",
+    "user_preferences",
+    "user_sessions",
+    "users",
+    "verification_codes"
+  ],
+  "production_tables": [
+    "academic_years",
+    "admins",
+    "attendance_overrides",
+    "attendance_records",
+    "attendance_sessions",
+    "audit_logs",
+    "course_assignments",
+    "courses",
+    "departments",
+    "geofence_areas",
+    "lecturers",
+    "notifications",
+    "semesters",
+    "student_enrollments",
+    "students",
+    "system_settings",
+    "two_factor_auth",
+    "user_preferences",
+    "user_sessions",
+    "users",
+    "verification_codes"
+  ],
+  "missing_tables_in_prod": [],
+  "missing_tables_in_local": [],
+  "table_differences": {
+    "audit_logs": {
+      "missing_in_prod": [],
+      "missing_in_local": [],
+      "different_types": [
+        {
+          "column": "ip_address",
+          "local": {
+            "type": "inet",
+            "nullable": true,
+            "default": null
+          },
+          "production": {
+            "type": "text",
+            "nullable": true,
+            "default": null
+          }
+        }
+      ]
+    },
+    "user_sessions": {
+      "missing_in_prod": [],
+      "missing_in_local": [],
+      "different_types": [
+        {
+          "column": "ip_address",
+          "local": {
+            "type": "inet",
+            "nullable": true,
+            "default": null
+          },
+          "production": {
+            "type": "text",
+            "nullable": true,
+            "default": null
+          }
+        }
+      ]
+    },
+    "verification_codes": {
+      "missing_in_prod": [],
+      "missing_in_local": [
+        "verified_at",
+        "is_verified"
+      ],
+      "different_types": [
+        {
+          "column": "purpose",
+          "local": {
+            "type": "character varying",
+            "nullable": false,
+            "default": "'registration'::character varying"
+          },
+          "production": {
+            "type": "character varying",
+            "nullable": true,
+            "default": null
+          }
+        },
+        {
+          "column": "user_type",
+          "local": {
+            "type": "USER-DEFINED",
+            "nullable": false,
+            "default": null
+          },
+          "production": {
+            "type": "character varying",
+            "nullable": false,
+            "default": null
+          }
+        },
+        {
+          "column": "created_at",
+          "local": {
+            "type": "timestamp without time zone",
+            "nullable": false,
+            "default": "CURRENT_TIMESTAMP"
+          },
+          "production": {
+            "type": "timestamp without time zone",
+            "nullable": true,
+            "default": null
+          }
+        },
+        {
+          "column": "attempts",
+          "local": {
+            "type": "integer",
+            "nullable": false,
+            "default": "0"
+          },
+          "production": {
+            "type": "integer",
+            "nullable": true,
+            "default": null
+          }
+        },
+        {
+          "column": "id",
+          "local": {
+            "type": "character varying",
+            "nullable": false,
+            "default": null
+          },
+          "production": {
+            "type": "uuid",
+            "nullable": false,
+            "default": null
+          }
+        },
+        {
+          "column": "max_attempts",
+          "local": {
+            "type": "integer",
+            "nullable": false,
+            "default": "5"
+          },
+          "production": {
+            "type": "integer",
+            "nullable": true,
+            "default": null
+          }
+        }
+      ]
+    }
+  },
+  "sql_statements": []
+}
